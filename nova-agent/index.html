@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RENTMASTER — Smart Living | Hệ Thống Quản Lý Phòng Trọ</title>
+
+  <!-- Typography: Google Fonts Preconnect & Stylesheet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Direct Font-Face definitions pointing to master spec woff2 URLs -->
+  <style>
+    @font-face {
+      font-family: 'IBM Plex Mono';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url('https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3oQIwlBFgsAXHNk.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Mono';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1i8q131nj-o.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Mono';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwlBFgsAXHNk.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Schibsted Grotesk';
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url('https://fonts.gstatic.com/s/schibstedgrotesk/v7/Jqz55SSPQuCQF3t8uOwiUL-taUTtap9GayojdSFO.woff2') format('woff2');
+    }
+
+    /* ==========================================================================
+       AGENT 1: CSS RESET & DESIGN TOKENS
+       ========================================================================== */
+    :root {
+      --bg: #efece6;
+      --text: #141414;
+      --dim-text: rgba(20, 20, 20, 0.5);
+      --grid-lines: rgba(20, 20, 20, 0.09);
+      --brand-gradient: conic-gradient(from 200deg, #ffb347, #ff8a3d 18%, #ff5a5f 34%, #ff3d8b 50%, #ff5a5f 66%, #ff8a3d 82%, #ffb347);
+      --col: 17%;
+      --font-sans: 'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --error-color: #d92d20;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Fixed WebGL Canvas */
+    #webgl-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ==========================================================================
+       AGENT 1: FIXED CHROME (GUIDES, TOP BAR, NAV, RIGHT RAIL)
+       ========================================================================== */
+    /* 3 Vertical Guide Lines: 17%, 50%, 83% */
+    .guide-line {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--grid-lines);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .guide-1 { left: 17%; }
+    .guide-2 { left: 50%; }
+    .guide-3 { left: 83%; }
+
+    /* Top Announcement Bar */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      background-color: var(--bg);
+      border-bottom: 1px solid var(--grid-lines);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+      z-index: 100;
+      transition: transform 0.5s cubic-bezier(0.6, 0, 0.2, 1);
+    }
+    .top-bar.hidden {
+      transform: translateY(-100%);
+    }
+    .top-bar strong {
+      font-weight: 500;
+      margin-right: 6px;
+    }
+    .top-bar-close {
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text);
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .top-bar-close:hover {
+      opacity: 1;
+    }
+
+    /* Navigation Bar */
+    .nav-bar {
+      position: fixed;
+      top: 30px;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: rgba(239, 236, 230, 0.86);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--grid-lines);
+      z-index: 90;
+      display: grid;
+      grid-template-columns: 17% 1fr 14% 17%;
+      align-items: center;
+      transition: top 0.5s cubic-bezier(0.6, 0, 0.2, 1);
+    }
+    .nav-bar.at-top {
+      top: 0;
+    }
+
+    /* Logo cell */
+    .nav-logo-cell {
+      padding-left: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      width: 27px;
+      height: 27px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-text {
+      font-family: var(--font-sans);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* Menu cell */
+    .nav-menu-cell {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-left: 16px;
+    }
+    .nav-menu-cell a {
+      color: var(--text);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .nav-menu-cell a:hover {
+      opacity: 0.6;
+    }
+
+    /* Pad cell */
+    .nav-pad-cell {
+      height: 100%;
+      border-left: 1px solid var(--grid-lines);
+      border-right: 1px solid var(--grid-lines);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .nav-pad-cell a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    /* Launch button cell */
+    .nav-btn-cell {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 24px;
+    }
+    .btn-launch {
+      height: 30px;
+      padding: 0 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(20, 20, 20, 0.2);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    /* Top edge & left edge gradient border via clip-path */
+    .btn-launch::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(135deg, #ff8a3d, #ff3d8b);
+      clip-path: polygon(0 0, 48% 0, 48% 2px, 2px 2px, 2px 100%, 0 100%);
+      pointer-events: none;
+    }
+    .btn-launch:hover {
+      background-color: rgba(20, 20, 20, 0.04);
+    }
+
+    /* Right Rail Navigation */
+    .right-rail {
+      position: fixed;
+      right: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 270px;
+      width: 40px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: auto;
+    }
+    .rail-track {
+      position: relative;
+      height: 220px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rail-dots {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rail-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(20, 20, 20, 0.25);
+    }
+    .rail-indicator {
+      position: absolute;
+      right: 18px;
+      top: 0%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      transition: top 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+    .rail-dial {
+      width: 12px;
+      height: 12px;
+    }
+    .rail-menu-link {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      text-decoration: none;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .rail-menu-link:hover {
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       AGENT 1: CORNER BRACKETS & REVEAL SYSTEM (.rv)
+       ========================================================================== */
+    .corner-brackets {
+      position: relative;
+    }
+    .cb {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-color: var(--text);
+      border-style: solid;
+      pointer-events: none;
+    }
+    .cb-tl { top: -4px; left: -4px; border-width: 1px 0 0 1px; border-top-left-radius: 2px; }
+    .cb-tr { top: -4px; right: -4px; border-width: 1px 1px 0 0; border-top-right-radius: 2px; }
+    .cb-bl { bottom: -4px; left: -4px; border-width: 0 0 1px 1px; border-bottom-left-radius: 2px; }
+    .cb-br { bottom: -4px; right: -4px; border-width: 0 1px 1px 0; border-bottom-right-radius: 2px; }
+
+    /* Reveal Animation Classes */
+    .rv {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity 1s cubic-bezier(0.2, 0.7, 0.2, 1), transform 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+      will-change: opacity, transform;
+    }
+    .rv.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .rv-d1 { transition-delay: 0.1s; }
+    .rv-d2 { transition-delay: 0.2s; }
+    .rv-d3 { transition-delay: 0.3s; }
+    .rv-d4 { transition-delay: 0.4s; }
+
+    /* ==========================================================================
+       AGENT 1: MODERN MONOSPACE LOGIN FORM (SECTION 1 INTRO)
+       ========================================================================== */
+    .content-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+    }
+
+    .section {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ---------------- SECTION 1: INTRO (100vh) ---------------- */
+    #intro {
+      height: 100vh;
+    }
+
+    /* Login Form Box: left 17%, top 30%, width 25.5% */
+    .login-box-wrapper {
+      position: absolute;
+      left: 17%;
+      top: 30%;
+      width: 25.5%;
+      min-width: 290px;
+    }
+    .login-tab {
+      width: 42px;
+      height: 42px;
+      background: transparent;
+      border: 1px solid var(--grid-lines);
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+    }
+    .login-box {
+      border: 1px solid var(--text);
+      background: rgba(239, 236, 230, 0.90);
+      padding: 18px 20px 20px 20px;
+      font-family: var(--font-mono);
+      position: relative;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .login-form-group {
+      margin-bottom: 12px;
+    }
+    .login-label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim-text);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .login-input {
+      width: 100%;
+      height: 32px;
+      background: transparent;
+      border: 1px solid rgba(20, 20, 20, 0.22);
+      padding: 0 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-input:focus {
+      border-color: var(--text);
+      box-shadow: 0 0 0 1px rgba(20, 20, 20, 0.1);
+    }
+    .login-input::placeholder {
+      color: rgba(20, 20, 20, 0.35);
+      font-size: 11px;
+    }
+    .login-btn {
+      width: 100%;
+      height: 34px;
+      margin-top: 6px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .login-btn:hover {
+      background-color: var(--text);
+      color: var(--bg);
+    }
+    .login-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Red mono error message */
+    .login-error-msg {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--error-color);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      min-height: 16px;
+      line-height: 1.35;
+    }
+
+    /* Faint ink demo hint & Quick-fill chips */
+    .login-demo-hint {
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(20, 20, 20, 0.38);
+      line-height: 1.4;
+    }
+    .demo-chips {
+      margin-top: 6px;
+      display: flex;
+      gap: 8px;
+    }
+    .chip-btn {
+      background: transparent;
+      border: 1px dashed rgba(20, 20, 20, 0.25);
+      padding: 3px 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      color: var(--dim-text);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .chip-btn:hover {
+      border-color: var(--text);
+      color: var(--text);
+    }
+
+    /* Horizontal Rule: Level with top of box, spanning to 83% */
+    .intro-top-rule {
+      position: absolute;
+      top: 30%;
+      left: calc(17% + 25.5%);
+      right: 17%;
+      height: 1px;
+      background: var(--grid-lines);
+    }
+
+    /* Feature List: under rule, right-aligned to 83% guide, 23% wide */
+    .feature-list {
+      position: absolute;
+      top: calc(30% + 1px);
+      right: 17%;
+      width: 23%;
+      min-width: 220px;
+    }
+    .feature-row {
+      height: 21px;
+      border-bottom: 1px solid var(--grid-lines);
+      display: flex;
+      align-items: center;
+      position: relative;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .feature-row::before {
+      content: '';
+      position: absolute;
+      left: 18%;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--text);
+    }
+    .feature-row span {
+      padding-left: 26%;
+    }
+    .feature-row.dim {
+      color: var(--dim-text);
+    }
+
+    /* Bottom Left Headline: "Smart / Living" */
+    .intro-bottom-left {
+      position: absolute;
+      bottom: 6%;
+      left: 6%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .unleash-tag {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      margin-bottom: 12px;
+      display: inline-block;
+      padding: 2px 6px;
+      background: rgba(239, 236, 230, 0.88);
+    }
+    .headline-line {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: clamp(42px, 5.25vw, 92px);
+      font-weight: 400;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+    /* Smart: gradient border, cut corner */
+    .headline-box-thinking {
+      display: inline-block;
+      padding: 2px;
+      background: linear-gradient(135deg, #ff8a3d, #ff3d8b);
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+    }
+    .headline-inner-thinking {
+      background: var(--bg);
+      padding: 4px 24px 10px 16px;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+    }
+    /* Living: amber->orange->pink */
+    .headline-box-machines {
+      display: inline-block;
+      padding: 2px;
+      background: linear-gradient(135deg, #ffb347, #ff8a3d 50%, #ff3d8b);
+    }
+    .headline-inner-machines {
+      background: var(--bg);
+      padding: 4px 24px 10px 16px;
+    }
+
+    /* Sub line: bottom 3.6%, left at 62% + 18px */
+    .intro-sub-line {
+      position: absolute;
+      bottom: 3.6%;
+      left: calc(62% + 18px);
+      font-size: 14.5px;
+      color: var(--dim-text);
+      max-width: 320px;
+      line-height: 1.4;
+      background: rgba(239, 236, 230, 0.88);
+      padding: 4px 8px;
+    }
+
+    /* Scroll Link at bottom right */
+    .scroll-link {
+      position: absolute;
+      bottom: 5%;
+      right: 7%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .scroll-arrow-box {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .scroll-arrow-icon {
+      animation: arrowBob 2s infinite ease-in-out;
+    }
+    @keyframes arrowBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+
+    /* Bottom rule: 50% to right edge at bottom 14% */
+    .intro-bottom-rule {
+      position: absolute;
+      bottom: 14%;
+      left: 50%;
+      right: 0;
+      height: 1px;
+      background: var(--grid-lines);
+    }
+
+    /* ---------------- SECTION 2: PRODUCT (100vh) ---------------- */
+    #product {
+      height: 100vh;
+    }
+
+    /* Tab Carousel: 74px strip near top starting at 17% guide */
+    .carousel-container {
+      position: absolute;
+      top: 120px;
+      left: 17%;
+      right: 0;
+      height: 74px;
+      overflow: hidden;
+    }
+    .carousel-track {
+      display: flex;
+      height: 100%;
+      transition: transform 0.9s cubic-bezier(0.65, 0, 0.2, 1);
+    }
+    .carousel-tab {
+      width: 33vw;
+      min-width: 33vw;
+      height: 74px;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--grid-lines);
+      position: relative;
+      opacity: 0.14;
+      transition: opacity 0.5s;
+      padding: 0 20px;
+    }
+    .carousel-tab.passed {
+      opacity: 0.05;
+    }
+    .carousel-tab.active {
+      opacity: 1;
+      border: 1px solid var(--text);
+      background: rgba(239, 236, 230, 0.88);
+    }
+    .tab-num-cell {
+      width: 68px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      color: var(--dim-text);
+    }
+    .carousel-tab.active .tab-num-cell {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .tab-label-cell {
+      font-family: var(--font-sans);
+      font-size: 17px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Product Headline bottom left */
+    .product-bottom-left {
+      position: absolute;
+      bottom: 8%;
+      left: 6%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .product-dots-tag {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 0.2em;
+      margin-bottom: 8px;
+    }
+    .product-headline {
+      font-size: clamp(30px, 3.05vw, 54px);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .product-gateway-box {
+      border: 1px solid var(--text);
+      border-radius: 4px;
+      padding: 4px 18px 8px 18px;
+      margin-bottom: 8px;
+      display: inline-block;
+      background: rgba(239, 236, 230, 0.88);
+    }
+    .product-web3-line {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(239, 236, 230, 0.88);
+    }
+
+    /* ---------------- SECTION 3: REVIEWS (100vh) ---------------- */
+    #reviews {
+      height: 100vh;
+    }
+
+    /* Header strip: 60px tall near top with hairline under */
+    .reviews-header-strip {
+      position: absolute;
+      top: 100px;
+      left: 17%;
+      right: 17%;
+      height: 60px;
+      border-bottom: 1px solid var(--grid-lines);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .reviews-tstmnl-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+    .reviews-avatar {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ded9d0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .reviews-author-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .reviews-author-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--text);
+    }
+    .reviews-author-role {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim-text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Quote Box: left, top 26%, 23vw wide */
+    .reviews-quote-wrapper {
+      position: absolute;
+      top: 26%;
+      left: 17%;
+      width: 25vw;
+      min-width: 320px;
+      transition: opacity 0.45s, transform 0.45s;
+    }
+    .reviews-quote-text {
+      font-size: clamp(20px, 2.3vw, 40px);
+      line-height: 1.19;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      background: rgba(239, 236, 230, 0.88);
+      padding: 12px;
+      border-radius: 4px;
+    }
+    .reviews-try-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(239, 236, 230, 0.88);
+      padding: 6px 12px;
+      display: inline-flex;
+    }
+    .reviews-try-rule {
+      width: 24px;
+      height: 1px;
+      background: var(--text);
+    }
+
+    /* Navigation Arrows bottom left */
+    .reviews-arrows {
+      position: absolute;
+      bottom: 8%;
+      left: 17%;
+      display: flex;
+      gap: 16px;
+    }
+    .reviews-arrow-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--text);
+      background: rgba(239, 236, 230, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.2s;
+    }
+    .reviews-arrow-btn:hover {
+      background: rgba(20, 20, 20, 0.08);
+    }
+
+    /* Ghost review to right of 83% guide */
+    .reviews-ghost {
+      position: absolute;
+      top: 26%;
+      left: 85%;
+      width: 24vw;
+      opacity: 0.10;
+      pointer-events: none;
+      font-size: clamp(20px, 2.3vw, 40px);
+      line-height: 1.19;
+    }
+
+    /* ---------------- FOOTER (30vh) ---------------- */
+    .page-footer {
+      height: 30vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-top: 1px solid var(--grid-lines);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim-text);
+      background: var(--bg);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ==========================================================================
+       AGENT 1: RESPONSIVE DESIGN (<= 900px)
+       ========================================================================== */
+    @media (max-width: 900px) {
+      /* Hidden elements per master spec */
+      .guide-1, .guide-3,
+      .nav-menu-cell, .nav-pad-cell,
+      .right-rail,
+      .feature-list, .intro-top-rule, .intro-bottom-rule,
+      .reviews-ghost {
+        display: none !important;
+      }
+
+      /* Nav simplified to logo + button */
+      .nav-bar {
+        grid-template-columns: 1fr auto;
+        padding: 0 16px;
+      }
+      .nav-logo-cell {
+        padding-left: 0;
+      }
+      .nav-btn-cell {
+        padding-right: 0;
+      }
+
+      /* Login Box spans width at top 16% */
+      .login-box-wrapper {
+        left: 16px;
+        right: 16px;
+        top: 16%;
+        width: auto;
+      }
+
+      /* Bottom left headlines positioned 16px from edges */
+      .intro-bottom-left {
+        left: 16px;
+        bottom: 8%;
+      }
+      .intro-sub-line {
+        left: 16px;
+        bottom: 2%;
+        max-width: calc(100% - 32px);
+      }
+      .scroll-link {
+        right: 16px;
+        bottom: 8%;
+      }
+
+      /* Product section */
+      .carousel-container {
+        left: 16px;
+      }
+      .carousel-tab {
+        width: 75vw;
+        min-width: 75vw;
+      }
+      .product-bottom-left {
+        left: 16px;
+      }
+
+      /* Reviews section */
+      .reviews-header-strip {
+        left: 16px;
+        right: 16px;
+        top: 80px;
+      }
+      .reviews-quote-wrapper {
+        left: 16px;
+        right: 16px;
+        top: 24%;
+        width: auto;
+      }
+      .reviews-arrows {
+        left: 16px;
+        bottom: 8%;
+      }
+    }
+  </style>
+
+  <!-- Import Map for Three.js 0.160.0 & Addons -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Fullscreen WebGL Canvas for 3D Robot -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Vertical 1px Guides at 17%, 50%, 83% -->
+  <div class="guide-line guide-1"></div>
+  <div class="guide-line guide-2"></div>
+  <div class="guide-line guide-3"></div>
+
+  <!-- Top Announcement Bar (Slides up on scroll > 40px) -->
+  <div class="top-bar" id="topBar">
+    <div><strong>Thông Báo:</strong> RentMaster V1 - Hệ Thống Quản Lý Phòng Trọ Thông Minh ↗</div>
+    <button class="top-bar-close" id="topBarClose" aria-label="Đóng thanh thông báo">×</button>
+  </div>
+
+  <!-- Nav Bar (52px tall, 17% 1fr 14% 17%) -->
+  <nav class="nav-bar" id="navBar">
+    <div class="nav-logo-cell">
+      <div class="logo-badge">
+        <svg width="27" height="27" viewBox="0 0 27 27" fill="none">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ffb347" />
+              <stop offset="50%" stop-color="#ff8a3d" />
+              <stop offset="100%" stop-color="#ff3d8b" />
+            </linearGradient>
+          </defs>
+          <path d="M 22 7 A 5 5 0 0 0 17 2 L 7 2 A 5 5 0 0 0 2 7 L 2 20 A 5 5 0 0 0 7 25 L 17 25 A 5 5 0 0 0 22 20" 
+                stroke="url(#logoGrad)" stroke-width="2.2" stroke-linecap="round" fill="none" />
+          <circle cx="9" cy="13.5" r="1.6" fill="#141414" />
+          <circle cx="15.5" cy="13.5" r="1.6" fill="#141414" />
+        </svg>
+      </div>
+      <span class="logo-text">RENTMASTER</span>
+    </div>
+
+    <div class="nav-menu-cell">
+      <a href="#intro">Tổng quan▾</a>
+      <a href="#product">Tính năng</a>
+      <a href="#reviews">Đánh giá</a>
+      <a href="/admin">Quản trị viên</a>
+      <a href="/tenant">Cư dân</a>
+      <a href="#contact">Liên hệ</a>
+    </div>
+
+    <div class="nav-pad-cell">
+      <a href="/tenant">Cổng cư dân ↗</a>
+    </div>
+
+    <div class="nav-btn-cell">
+      <button type="button" class="btn-launch" id="navLoginFocusBtn">•• ĐĂNG NHẬP</button>
+    </div>
+  </nav>
+
+  <!-- Right Rail (14 dots + sliding indicator) -->
+  <aside class="right-rail">
+    <div class="rail-track">
+      <div class="rail-dots">
+        <span class="rail-dot"></span><span class="rail-dot"></span><span class="rail-dot"></span>
+        <span class="rail-dot"></span><span class="rail-dot"></span><span class="rail-dot"></span>
+        <span class="rail-dot"></span><span class="rail-dot"></span><span class="rail-dot"></span>
+        <span class="rail-dot"></span><span class="rail-dot"></span><span class="rail-dot"></span>
+        <span class="rail-dot"></span><span class="rail-dot"></span>
+      </div>
+      <div class="rail-indicator" id="railIndicator">
+        <svg class="rail-dial" viewBox="0 0 12 12">
+          <circle cx="6" cy="6" r="4.5" stroke="#141414" stroke-width="1" fill="none" />
+          <circle cx="6" cy="3" r="1.2" fill="#ff5a5f" />
+        </svg>
+        <span id="railLabel">INTRO</span>
+      </div>
+    </div>
+    <a href="#menu" class="rail-menu-link">≡ MENU</a>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <main class="content-container">
+
+    <!-- ==================== SECTION 1: INTRO (100vh) ==================== -->
+    <section class="section" id="intro">
+      <!-- Form Đăng Nhập Hiện Đại (Vị trí left 17%, top 30%, width 25.5%) -->
+      <div class="login-box-wrapper rv rv-d1">
+        <div class="login-tab">⚿</div>
+        <div class="login-box corner-brackets">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+          
+          <form id="loginForm" autocomplete="off">
+            <div class="login-form-group">
+              <label class="login-label" for="loginUsername">TÊN ĐĂNG NHẬP</label>
+              <input type="text" id="loginUsername" class="login-input" placeholder="chutro / nguyenvana" required autocomplete="username">
+            </div>
+            
+            <div class="login-form-group">
+              <label class="login-label" for="loginPassword">MẬT KHẨU</label>
+              <input type="password" id="loginPassword" class="login-input" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" id="loginSubmitBtn" class="login-btn">
+              <span>•• ĐĂNG NHẬP HỆ THỐNG</span>
+            </button>
+
+            <!-- Khối thông báo lỗi màu đỏ chuẩn monospace -->
+            <div id="loginErrorMessage" class="login-error-msg"></div>
+          </form>
+        </div>
+
+        <!-- Thông tin tài khoản mẫu và nút điền nhanh -->
+        <div class="login-demo-hint">TÀI KHOẢN MẪU HỆ THỐNG:</div>
+        <div class="demo-chips">
+          <button type="button" class="chip-btn" id="chipLandlord" title="Điền tài khoản Chủ trọ">🔑 CHỦ TRỌ</button>
+          <button type="button" class="chip-btn" id="chipTenant" title="Điền tài khoản Khách thuê">👤 KHÁCH THUÊ</button>
+        </div>
+      </div>
+
+      <!-- Hairline rule level with top of box to 83% -->
+      <div class="intro-top-rule"></div>
+
+      <!-- Feature List (under rule, right-aligned to 83%, 23% wide) -->
+      <div class="feature-list rv rv-d2">
+        <div class="feature-row"><span>QUẢN LÝ TÀI CHÍNH</span></div>
+        <div class="feature-row"><span>THEO DÕI BẢO TRÌ</span></div>
+        <div class="feature-row"><span>TÍCH HỢP QR CODE</span></div>
+        <div class="feature-row dim"><span>TỰ ĐỘNG HÓA HÓA ĐƠN</span></div>
+      </div>
+
+      <!-- Bottom Left: Headline "Smart / Living" -->
+      <div class="intro-bottom-left rv rv-d3">
+        <div class="unleash-tag">UNLEASH THE POWER OF</div>
+        <div class="headline-box-thinking">
+          <div class="headline-inner-thinking headline-line">Smart</div>
+        </div>
+        <div class="headline-box-machines">
+          <div class="headline-inner-machines headline-line">Living</div>
+        </div>
+      </div>
+
+      <!-- Sub line: bottom 3.6%, left at 62% + 18px -->
+      <div class="intro-sub-line rv rv-d4">
+        Hệ thống quản lý phòng trọ hiện đại, tự động tính điện nước và tối ưu hóa vận hành.
+      </div>
+
+      <!-- Scroll Link at bottom right -->
+      <a href="#product" class="scroll-link rv rv-d4">
+        <span>SCROLL</span>
+        <div class="scroll-arrow-box corner-brackets">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+          <svg class="scroll-arrow-icon" width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M5 1V8M5 8L2 5M5 8L8 5" stroke="#141414" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+
+      <!-- Bottom rule: 50% to right edge at bottom 14% -->
+      <div class="intro-bottom-rule"></div>
+    </section>
+
+    <!-- ==================== SECTION 2: PRODUCT (100vh) ==================== -->
+    <section class="section" id="product">
+      <!-- Tab Carousel (74px strip near top starting at 17% guide) -->
+      <div class="carousel-container rv rv-d1">
+        <div class="carousel-track" id="carouselTrack">
+          <!-- 10 tabs adapted to RentMaster boarding house features -->
+          <div class="carousel-tab active corner-brackets">
+            <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+            <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+            <div class="tab-num-cell">01</div>
+            <div class="tab-label-cell">Quản lý phòng &amp; hợp đồng</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">02</div>
+            <div class="tab-label-cell">Ghi chỉ số điện nước</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">03</div>
+            <div class="tab-label-cell">Xuất hóa đơn &amp; mã QR</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">04</div>
+            <div class="tab-label-cell">Quản lý cư dân &amp; khách thuê</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">05</div>
+            <div class="tab-label-cell">Tiếp nhận báo hỏng sự cố</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">06</div>
+            <div class="tab-label-cell">Báo cáo doanh thu tài chính</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">07</div>
+            <div class="tab-label-cell">Bàn giao tài sản nội thất</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">08</div>
+            <div class="tab-label-cell">Cảnh báo hạn hợp đồng</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">09</div>
+            <div class="tab-label-cell">Phân quyền Chủ - Khách</div>
+          </div>
+          <div class="carousel-tab">
+            <div class="tab-num-cell">10</div>
+            <div class="tab-label-cell">Quản lý phòng &amp; hợp đồng</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Headline Bottom Left -->
+      <div class="product-bottom-left rv rv-d2">
+        <div class="product-dots-tag">··</div>
+        <div class="product-headline">
+          <div class="product-gateway-box">Your Gateway</div><br>
+          <div class="product-web3-line">To Smart Living</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 3: REVIEWS (100vh) ==================== -->
+    <section class="section" id="reviews">
+      <!-- Header strip: 60px tall near top with hairline under -->
+      <div class="reviews-header-strip rv rv-d1">
+        <div class="reviews-tstmnl-badge">TSTMNL [<span id="reviewCounter">01</span>]</div>
+        <!-- Inline SVG Avatar: Figure in front of brick wall -->
+        <div class="reviews-avatar">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <rect width="56" height="56" fill="#ded9d0"/>
+            <line x1="0" y1="12" x2="56" y2="12" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="0" y1="24" x2="56" y2="24" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="0" y1="36" x2="56" y2="36" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="0" y1="48" x2="56" y2="48" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="14" y1="0" x2="14" y2="12" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="42" y1="0" x2="42" y2="12" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="28" y1="12" x2="28" y2="24" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="14" y1="24" x2="14" y2="36" stroke="#c8c2b7" stroke-width="1"/>
+            <line x1="42" y1="24" x2="42" y2="36" stroke="#c8c2b7" stroke-width="1"/>
+            <circle cx="28" cy="22" r="9" fill="#1e1e24"/>
+            <path d="M12 52 C12 38, 20 35, 28 35 C36 35, 44 38, 44 52 Z" fill="#1e1e24"/>
+            <path d="M28 35 C32 35, 38 37, 40 46" stroke="#ff8a3d" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="reviews-author-group">
+          <span id="reviewAuthorName">Nguyễn Văn Chủ</span>
+          <span class="reviews-author-dot"></span>
+          <span class="reviews-author-role" id="reviewAuthorRole">Chủ khu trọ Cầu Giấy &amp; Bách Khoa</span>
+        </div>
+      </div>
+
+      <!-- Quote Box (left, top 26%, 23vw wide) -->
+      <div class="reviews-quote-wrapper rv rv-d2" id="reviewsQuoteWrapper">
+        <div class="reviews-quote-text" id="reviewQuoteText">
+          “Hệ thống RentMaster giúp tôi ghi chỉ số điện nước và gửi hóa đơn cho 40 phòng trọ chỉ trong 10 phút, không còn nhầm lẫn số liệu như trước.
+        </div>
+        <a href="#intro" class="reviews-try-link" id="reviewsTryLink">
+          <span class="reviews-try-rule"></span>
+          <span>Trải nghiệm ngay (Đăng Nhập)</span>
+        </a>
+      </div>
+
+      <!-- Arrows bottom left -->
+      <div class="reviews-arrows rv rv-d3">
+        <button class="reviews-arrow-btn" id="reviewPrevBtn" aria-label="Đánh giá trước">←</button>
+        <button class="reviews-arrow-btn" id="reviewNextBtn" aria-label="Đánh giá kế tiếp">→</button>
+      </div>
+
+      <!-- Ghost preview to the right of 83% guide -->
+      <div class="reviews-ghost" id="reviewsGhost">
+        “Xem được chi tiết từng số điện, khối nước và mã QR thanh toán ngay trên điện thoại, rất minh bạch và tiện lợi.
+      </div>
+    </section>
+
+    <!-- ==================== FOOTER (30vh) ==================== -->
+    <footer class="page-footer">
+      <span>RENTMASTER · 2026</span>
+    </footer>
+
+  </main>
+
+  <!-- ==========================================================================
+       AGENT 2: DOM LOGIC & FORM AUTHENTICATION (FLASK BACKEND INTEGRATION)
+       ========================================================================== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. XỬ LÝ ĐĂNG NHẬP QUA FLASK API
+      const loginForm = document.getElementById('loginForm');
+      const loginUser = document.getElementById('loginUsername');
+      const loginPass = document.getElementById('loginPassword');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const errorMsg = document.getElementById('loginErrorMessage');
+      const focusBtn = document.getElementById('navLoginFocusBtn');
+      const tryLink = document.getElementById('reviewsTryLink');
+
+      // Nút điều hướng nhanh đến ô đăng nhập
+      if (focusBtn) {
+        focusBtn.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setTimeout(() => loginUser.focus(), 400);
+        });
+      }
+      if (tryLink) {
+        tryLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setTimeout(() => loginUser.focus(), 400);
+        });
+      }
+
+      // Nút điền nhanh tài khoản mẫu
+      const chipLandlord = document.getElementById('chipLandlord');
+      const chipTenant = document.getElementById('chipTenant');
+      if (chipLandlord) {
+        chipLandlord.addEventListener('click', () => {
+          loginUser.value = 'chutro';
+          loginPass.value = '123456';
+          errorMsg.textContent = '';
+        });
+      }
+      if (chipTenant) {
+        chipTenant.addEventListener('click', () => {
+          loginUser.value = 'nguyenvana';
+          loginPass.value = '123456';
+          errorMsg.textContent = '';
+        });
+      }
+
+      // Bắt sự kiện Submit Form Đăng nhập
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          errorMsg.textContent = '';
+          const username = loginUser.value.trim();
+          const password = loginPass.value.trim();
+
+          if (!username || !password) {
+            errorMsg.textContent = 'VUI LÒNG NHẬP ĐẦY ĐỦ TÊN ĐĂNG NHẬP VÀ MẬT KHẨU';
+            return;
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span>•• ĐANG XÁC THỰC...</span>';
+
+          try {
+            // Gọi trực tiếp backend Flask
+            const res = await fetch('/api/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (data.success && data.user) {
+              submitBtn.innerHTML = '<span>✓ ĐĂNG NHẬP THÀNH CÔNG!</span>';
+              
+              // Điều hướng theo Role
+              setTimeout(() => {
+                if (data.user.role === 'landlord') {
+                  window.location.href = '/admin';
+                } else {
+                  window.location.href = '/tenant';
+                }
+              }, 400);
+            } else {
+              errorMsg.textContent = data.message || 'TÀI KHOẢN HOẶC MẬT KHẨU KHÔNG CHÍNH XÁC';
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<span>•• ĐĂNG NHẬP HỆ THỐNG</span>';
+            }
+          } catch (err) {
+            console.error('Lỗi đăng nhập:', err);
+            errorMsg.textContent = 'LỖI KẾT NỐI TỚI MÁY CHỦ FLASK (PORT 5000)';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>•• ĐĂNG NHẬP HỆ THỐNG</span>';
+          }
+        });
+      }
+
+      // 2. PRODUCT TAB CAROUSEL (74px strip, auto-slides every 2.4s)
+      const track = document.getElementById('carouselTrack');
+      const tabs = Array.from(document.querySelectorAll('.carousel-tab'));
+      let currentTab = 0;
+      const totalTabs = tabs.length;
+
+      function updateTabs() {
+        const offset = currentTab * 33;
+        track.style.transform = `translateX(-${offset}vw)`;
+
+        tabs.forEach((tab, i) => {
+          tab.classList.remove('active', 'passed');
+          const existingBrackets = tab.querySelectorAll('.cb');
+          existingBrackets.forEach(b => b.remove());
+
+          if (i === currentTab) {
+            tab.classList.add('active');
+            const tl = document.createElement('span'); tl.className = 'cb cb-tl';
+            const tr = document.createElement('span'); tr.className = 'cb cb-tr';
+            const bl = document.createElement('span'); bl.className = 'cb cb-bl';
+            const br = document.createElement('span'); br.className = 'cb cb-br';
+            tab.appendChild(tl); tab.appendChild(tr); tab.appendChild(bl); tab.appendChild(br);
+          } else if (i < currentTab) {
+            tab.classList.add('passed');
+          }
+        });
+      }
+
+      setInterval(() => {
+        currentTab = (currentTab + 1) % (totalTabs - 2);
+        updateTabs();
+      }, 2400);
+
+      // 3. REVIEWS TESTIMONIAL CAROUSEL
+      const reviews = [
+        {
+          quote: "“Hệ thống RentMaster giúp tôi ghi chỉ số điện nước và gửi hóa đơn cho 40 phòng trọ chỉ trong 10 phút, không còn nhầm lẫn số liệu như trước.",
+          author: "Nguyễn Văn Chủ",
+          role: "Chủ khu trọ Cầu Giấy & Bách Khoa",
+          counter: "01"
+        },
+        {
+          quote: "“Xem được chi tiết từng số điện, khối nước và mã QR thanh toán ngay trên điện thoại, rất minh bạch và tiện lợi.",
+          author: "Nguyễn Văn An",
+          role: "Khách thuê phòng P101",
+          counter: "02"
+        },
+        {
+          quote: "“Tính năng báo hỏng sự cố giúp chủ nhà biết ngay để gọi thợ sửa chữa, trải nghiệm ở trọ thực sự rất an tâm.",
+          author: "Trần Thị Bình",
+          role: "Khách thuê phòng P201",
+          counter: "03"
+        }
+      ];
+
+      let reviewIdx = 0;
+      const quoteWrapper = document.getElementById('reviewsQuoteWrapper');
+      const quoteText = document.getElementById('reviewQuoteText');
+      const authorName = document.getElementById('reviewAuthorName');
+      const authorRole = document.getElementById('reviewAuthorRole');
+      const counterEl = document.getElementById('reviewCounter');
+      const ghostEl = document.getElementById('reviewsGhost');
+      const prevBtn = document.getElementById('reviewPrevBtn');
+      const nextBtn = document.getElementById('reviewNextBtn');
+
+      function switchReview(nextIndex) {
+        quoteWrapper.style.opacity = '0';
+        quoteWrapper.style.transform = 'translateY(10px)';
+
+        setTimeout(() => {
+          reviewIdx = nextIndex;
+          const r = reviews[reviewIdx];
+          const nextR = reviews[(reviewIdx + 1) % reviews.length];
+
+          quoteText.textContent = r.quote;
+          authorName.textContent = r.author;
+          authorRole.textContent = r.role;
+          counterEl.textContent = r.counter;
+          ghostEl.textContent = nextR.quote;
+
+          quoteWrapper.style.opacity = '1';
+          quoteWrapper.style.transform = 'translateY(0)';
+        }, 450);
+      }
+
+      if (prevBtn && nextBtn) {
+        prevBtn.addEventListener('click', () => {
+          const prev = (reviewIdx - 1 + reviews.length) % reviews.length;
+          switchReview(prev);
+        });
+        nextBtn.addEventListener('click', () => {
+          const next = (reviewIdx + 1) % reviews.length;
+          switchReview(next);
+        });
+      }
+
+      // 4. TOP BAR SCROLL HIDE & NAV OFFSET
+      const topBar = document.getElementById('topBar');
+      const navBar = document.getElementById('navBar');
+      const topBarClose = document.getElementById('topBarClose');
+      let topBarDismissed = false;
+
+      function handleScrollTopBar() {
+        if (topBarDismissed) return;
+        if (window.scrollY > 40) {
+          topBar.classList.add('hidden');
+          navBar.classList.add('at-top');
+        } else {
+          topBar.classList.remove('hidden');
+          navBar.classList.remove('at-top');
+        }
+      }
+
+      window.addEventListener('scroll', handleScrollTopBar, { passive: true });
+
+      if (topBarClose) {
+        topBarClose.addEventListener('click', () => {
+          topBarDismissed = true;
+          topBar.classList.add('hidden');
+          navBar.classList.add('at-top');
+        });
+      }
+
+      // 5. INTERSECTION OBSERVER FOR REVEALS (.rv) & RIGHT RAIL SPY
+      const railIndicator = document.getElementById('railIndicator');
+      const railLabel = document.getElementById('railLabel');
+
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.rv').forEach(el => revealObserver.observe(el));
+
+      const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            if (id === 'intro') {
+              railIndicator.style.top = '0%';
+              railLabel.textContent = 'INTRO';
+            } else if (id === 'product') {
+              railIndicator.style.top = '31%';
+              railLabel.textContent = 'FEATURES';
+            } else if (id === 'reviews') {
+              railIndicator.style.top = '62%';
+              railLabel.textContent = 'REVIEWS';
+            }
+          }
+        });
+      }, { threshold: 0.5 });
+
+      document.querySelectorAll('.section').forEach(sec => sectionObserver.observe(sec));
+    });
+  </script>
+
+  <!-- ==========================================================================
+       AGENT 3: THREE.JS 3D ENGINE & ROBOT ARCHITECTURE (PRESERVED 100%)
+       ========================================================================== -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    // --------------------------------------------------------------------------
+    // 1. RENDERER, SCENE, CAMERA & LIGHTS
+    // --------------------------------------------------------------------------
+    const canvas = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.1, 11.6);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // PMREM from RoomEnvironment (blur 0.04) at intensity 0.9
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+    const roomEnv = new RoomEnvironment(renderer);
+    const envTexture = pmremGenerator.fromScene(roomEnv, 0.04).texture;
+    scene.environment = envTexture;
+    scene.environmentIntensity = 0.9;
+
+    // Lights
+    // Hemisphere: sky #fff6ee, ground #d9d2c8, intensity .7
+    const hemiLight = new THREE.HemisphereLight(0xfff6ee, 0xd9d2c8, 0.7);
+    scene.add(hemiLight);
+
+    // Key Light: directional #fff3e6 at 1.7 from (-3, 5, 4), casts 1024px shadow
+    const keyLight = new THREE.DirectionalLight(0xfff3e6, 1.7);
+    keyLight.position.set(-3, 5, 4);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.radius = 6;
+    keyLight.shadow.bias = -0.0005;
+    keyLight.shadow.camera.near = 1;
+    keyLight.shadow.camera.far = 16;
+    keyLight.shadow.camera.left = -3;
+    keyLight.shadow.camera.right = 3;
+    keyLight.shadow.camera.top = 4;
+    keyLight.shadow.camera.bottom = -4;
+    scene.add(keyLight);
+
+    // Rim Light: directional #fff0e6 at 1.2 from (4, 2, -4)
+    const rimLight = new THREE.DirectionalLight(0xfff0e6, 1.2);
+    rimLight.position.set(4, 2, -4);
+    scene.add(rimLight);
+
+    // Fill Light: warm point light #ff9a6a at 2.2 from (-3.2, 1.2, .6), range 6
+    const fillLight = new THREE.PointLight(0xff9a6a, 2.2, 6);
+    fillLight.position.set(-3.2, 1.2, 0.6);
+    scene.add(fillLight);
+
+    // --------------------------------------------------------------------------
+    // 2. PROCEDURAL TEXTURES & MATERIALS
+    // --------------------------------------------------------------------------
+    // 512px Conic Gradient Ring Texture
+    function createConicGradientTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createConicGradient(Math.PI * 1.1, 256, 256);
+      grad.addColorStop(0.00, '#ff3d8b');
+      grad.addColorStop(0.18, '#ff5a5f');
+      grad.addColorStop(0.34, '#ff8a3d');
+      grad.addColorStop(0.50, '#ffb347');
+      grad.addColorStop(0.66, '#ff8a3d');
+      grad.addColorStop(0.82, '#ff5a5f');
+      grad.addColorStop(1.00, '#ff3d8b');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+    const ringTex = createConicGradientTexture();
+
+    // Robot Materials
+    const shellMat = new THREE.MeshPhysicalMaterial({
+      color: 0xeeebe6,
+      roughness: 0.38,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.3
+    });
+
+    const shellLightMat = new THREE.MeshPhysicalMaterial({
+      color: 0xf8f6f2,
+      roughness: 0.34,
+      clearcoat: 0.45,
+      clearcoatRoughness: 0.3
+    });
+
+    const jointsDarkMat = new THREE.MeshStandardMaterial({
+      color: 0x1b1b1f,
+      roughness: 0.55,
+      metalness: 0.3
+    });
+
+    const deepDarkMat = new THREE.MeshStandardMaterial({
+      color: 0x0f0f12,
+      roughness: 0.8
+    });
+
+    const pedestalMat = new THREE.MeshStandardMaterial({
+      color: 0x2a2928,
+      roughness: 0.9
+    });
+
+    const ringMat = new THREE.MeshPhysicalMaterial({
+      map: ringTex,
+      emissive: 0xffffff,
+      emissiveMap: ringTex,
+      emissiveIntensity: 0.22,
+      roughness: 0.5,
+      clearcoat: 0.35
+    });
+
+    // --------------------------------------------------------------------------
+    // 3. DYNAMIC FACE CANVAS (BLINKS + QUOTE MODE FADE)
+    // --------------------------------------------------------------------------
+    class RobotFaceScreen {
+      constructor() {
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = 512;
+        this.canvas.height = 512;
+        this.ctx = this.canvas.getContext('2d');
+
+        this.texture = new THREE.CanvasTexture(this.canvas);
+        this.texture.colorSpace = THREE.SRGBColorSpace;
+
+        this.targetMode = 'eyes'; // 'eyes' or 'quote'
+        this.quoteAlpha = 0; // 0 to 1
+
+        // Blink timing
+        this.isBlinking = false;
+        this.blinkStart = 0;
+        this.nextBlink = performance.now() + 3000;
+        this.firstDraw = true;
+      }
+
+      setMode(mode) {
+        this.targetMode = mode;
+      }
+
+      update(time) {
+        let changed = false;
+
+        // Mode alpha interpolation (+.05 per frame)
+        if (this.targetMode === 'quote' && this.quoteAlpha < 1) {
+          this.quoteAlpha = Math.min(1, this.quoteAlpha + 0.05);
+          changed = true;
+        } else if (this.targetMode === 'eyes' && this.quoteAlpha > 0) {
+          this.quoteAlpha = Math.max(0, this.quoteAlpha - 0.05);
+          changed = true;
+        }
+
+        // Blink animation
+        if (time >= this.nextBlink && !this.isBlinking && this.quoteAlpha < 0.9) {
+          this.isBlinking = true;
+          this.blinkStart = time;
+        }
+
+        let squash = 1;
+        if (this.isBlinking) {
+          changed = true;
+          const elapsed = time - this.blinkStart;
+          const duration = 180; // .18s
+          if (elapsed >= duration) {
+            this.isBlinking = false;
+            squash = 1;
+            this.nextBlink = time + 2500 + Math.random() * 3000;
+          } else {
+            const progress = elapsed / duration;
+            squash = 1 - Math.sin(progress * Math.PI) * 0.90; // Squashes to 10%
+          }
+        }
+
+        if (changed || this.firstDraw) {
+          this.draw(squash);
+          this.texture.needsUpdate = true;
+          this.firstDraw = false;
+        }
+      }
+
+      draw(squash) {
+        const ctx = this.ctx;
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Glowing Eyes Mode: two ellipses at (196, 262) & (316, 252), rx 30, ry 38
+        if (this.quoteAlpha < 1) {
+          ctx.save();
+          ctx.globalAlpha = 1 - this.quoteAlpha;
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = '#ffffff';
+
+          // Eye 1
+          ctx.beginPath();
+          ctx.ellipse(196, 262, 30, Math.max(2, 38 * squash), 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Eye 2
+          ctx.beginPath();
+          ctx.ellipse(316, 252, 30, Math.max(2, 38 * squash), 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Quote Mode: single 560px "Arial Black" “ at (256, 400)
+        if (this.quoteAlpha > 0) {
+          ctx.save();
+          ctx.globalAlpha = this.quoteAlpha;
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '900 560px "Arial Black", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('“', 256, 400);
+          ctx.restore();
+        }
+      }
+    }
+
+    const faceScreen = new RobotFaceScreen();
+
+    const screenMat = new THREE.MeshPhysicalMaterial({
+      color: 0x050505,
+      roughness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.1,
+      emissive: 0xffffff,
+      emissiveMap: faceScreen.texture,
+      emissiveIntensity: 1.6
+    });
+
+    // --------------------------------------------------------------------------
+    // 4. ROBOT MODEL ASSEMBLY & HIERARCHY
+    // --------------------------------------------------------------------------
+    const robotRoot = new THREE.Group();
+    scene.add(robotRoot);
+
+    // Pedestal: 1.7 x 1.6 x 1.7 box under the feet (y -2.22)
+    const pedestalGeo = new THREE.BoxGeometry(1.7, 1.6, 1.7);
+    const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+    pedestal.position.set(0, -3.02, 0); // Top surface sits exactly at y = -2.22
+    pedestal.receiveShadow = true;
+    robotRoot.add(pedestal);
+
+    // Torso Group
+    const torsoGroup = new THREE.Group();
+    torsoGroup.position.set(0, -0.22, 0);
+    robotRoot.add(torsoGroup);
+
+    // Torso Body: rounded box 1.22 x 1.12 x .92, radius .24
+    const torsoGeo = new RoundedBoxGeometry(1.22, 1.12, 0.92, 4, 0.24);
+    const torsoMesh = new THREE.Mesh(torsoGeo, shellMat);
+    torsoMesh.castShadow = true;
+    torsoGroup.add(torsoMesh);
+
+    // Chest-top slab in shell-light
+    const chestSlabGeo = new RoundedBoxGeometry(1.0, 0.22, 0.16, 3, 0.06);
+    const chestSlab = new THREE.Mesh(chestSlabGeo, shellLightMat);
+    chestSlab.position.set(0, 0.36, 0.42);
+    torsoGroup.add(chestSlab);
+
+    // Three small emissive LEDs on the chest: #ff8a3d, #ff5a5f, #ff3d8b
+    const ledColors = [0xff8a3d, 0xff5a5f, 0xff3d8b];
+    const ledGeo = new THREE.SphereGeometry(0.045, 16, 16);
+    ledColors.forEach((col, idx) => {
+      const mat = new THREE.MeshStandardMaterial({
+        color: col,
+        emissive: col,
+        emissiveIntensity: 1.8
+      });
+      const led = new THREE.Mesh(ledGeo, mat);
+      led.position.set(-0.16 + idx * 0.16, 0.36, 0.51);
+      torsoGroup.add(led);
+    });
+
+    // Two dark vertical slots with dark half-torus lips
+    const slotGeo = new THREE.BoxGeometry(0.05, 0.28, 0.02);
+    const slotLipGeo = new THREE.TorusGeometry(0.045, 0.015, 8, 16, Math.PI);
+    [-0.24, 0.24].forEach(x => {
+      const slot = new THREE.Mesh(slotGeo, deepDarkMat);
+      slot.position.set(x, -0.05, 0.47);
+      torsoGroup.add(slot);
+
+      const lip = new THREE.Mesh(slotLipGeo, deepDarkMat);
+      lip.position.set(x, 0.10, 0.47);
+      lip.rotation.z = Math.PI;
+      torsoGroup.add(lip);
+    });
+
+    // Dark Pelvis
+    const pelvisGeo = new RoundedBoxGeometry(0.92, 0.26, 0.72, 3, 0.08);
+    const pelvis = new THREE.Mesh(pelvisGeo, jointsDarkMat);
+    pelvis.position.set(0, -0.62, 0);
+    pelvis.castShadow = true;
+    torsoGroup.add(pelvis);
+
+    // Dark Neck
+    const neckGeo = new THREE.CylinderGeometry(0.25, 0.28, 0.35, 24);
+    const neck = new THREE.Mesh(neckGeo, jointsDarkMat);
+    neck.position.set(0, 0.60, 0);
+    neck.castShadow = true;
+    torsoGroup.add(neck);
+
+    // Head Group: Pivoting at y .78 (Head center at +.78 above pivot)
+    const headPivotGroup = new THREE.Group();
+    headPivotGroup.position.set(0, 0.78, 0);
+    robotRoot.add(headPivotGroup);
+
+    const headCenterGroup = new THREE.Group();
+    headCenterGroup.position.set(0, 0.78, 0);
+    headPivotGroup.add(headCenterGroup);
+
+    // Skull: rounded box 1.5 x 1.42 x 1.3, radius .2
+    const skullGeo = new RoundedBoxGeometry(1.5, 1.42, 1.3, 4, 0.2);
+    const skullMesh = new THREE.Mesh(skullGeo, shellMat);
+    skullMesh.castShadow = true;
+    headCenterGroup.add(skullMesh);
+
+    // Dark back block: 1.28 x 1.14 x .9, set back
+    const darkBackGeo = new RoundedBoxGeometry(1.28, 1.14, 0.9, 3, 0.08);
+    const darkBackMesh = new THREE.Mesh(darkBackGeo, jointsDarkMat);
+    darkBackMesh.position.set(0, 0, -0.28);
+    darkBackMesh.castShadow = true;
+    headCenterGroup.add(darkBackMesh);
+
+    // ~26 tiny dark "circuit" bars scattered over its back and top
+    const barGeo = new THREE.BoxGeometry(0.06, 0.03, 0.2);
+    for (let i = 0; i < 26; i++) {
+      const bar = new THREE.Mesh(barGeo, deepDarkMat);
+      if (i < 14) {
+        bar.position.set(-0.5 + (i % 5) * 0.25, -0.35 + Math.floor(i / 5) * 0.3, -0.74);
+      } else {
+        bar.rotation.x = Math.PI / 2;
+        bar.position.set(-0.45 + ((i - 14) % 4) * 0.3, 0.58, -0.2 - Math.floor((i - 14) / 4) * 0.2);
+      }
+      headCenterGroup.add(bar);
+    }
+
+    // Face Ring: extruded rounded-rect frame
+    function createFaceRingGeometry() {
+      const shape = new THREE.Shape();
+      const w = 1.5, h = 1.44, r = 0.3;
+      const x0 = -w / 2, y0 = -h / 2;
+      shape.moveTo(x0 + r, y0);
+      shape.lineTo(x0 + w - r, y0);
+      shape.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r);
+      shape.lineTo(x0 + w, y0 + h - r);
+      shape.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h);
+      shape.lineTo(x0 + r, y0 + h);
+      shape.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r);
+      shape.lineTo(x0, y0 + r);
+      shape.quadraticCurveTo(x0, y0, x0 + r, y0);
+
+      const hole = new THREE.Path();
+      const iw = 1.08, ih = 1.02, ir = 0.2;
+      const ix0 = -iw / 2, iy0 = -ih / 2;
+      hole.moveTo(ix0 + ir, iy0);
+      hole.lineTo(ix0 + iw - ir, iy0);
+      hole.quadraticCurveTo(ix0 + iw, iy0, ix0 + iw, iy0 + ir);
+      hole.lineTo(ix0 + iw, iy0 + ih - ir);
+      hole.quadraticCurveTo(ix0 + iw, iy0 + ih, ix0 + iw - ir, iy0 + ih);
+      hole.lineTo(ix0 + ir, iy0 + ih);
+      hole.quadraticCurveTo(ix0, iy0 + ih, ix0, iy0 + ih - ir);
+      hole.lineTo(ix0, iy0 + ir);
+      hole.quadraticCurveTo(ix0, iy0, ix0 + ir, iy0);
+      shape.holes.push(hole);
+
+      const extrudeSettings = {
+        depth: 0.1,
+        bevelEnabled: true,
+        bevelSegments: 3,
+        steps: 1,
+        bevelSize: 0.03,
+        bevelThickness: 0.03
+      };
+      const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+      const pos = geo.attributes.position;
+      const uvs = geo.attributes.uv;
+      for (let i = 0; i < pos.count; i++) {
+        const px = pos.getX(i);
+        const py = pos.getY(i);
+        uvs.setXY(i, (px - x0) / w, (py - y0) / h);
+      }
+      uvs.needsUpdate = true;
+      return geo;
+    }
+
+    const faceRingMesh = new THREE.Mesh(createFaceRingGeometry(), ringMat);
+    faceRingMesh.position.set(0, 0, 0.60);
+    faceRingMesh.castShadow = true;
+    headCenterGroup.add(faceRingMesh);
+
+    // Bezel: inner shell-light frame at z .62
+    const bezelGeo = new RoundedBoxGeometry(1.12, 1.06, 0.06, 3, 0.2);
+    const bezelMesh = new THREE.Mesh(bezelGeo, shellLightMat);
+    bezelMesh.position.set(0, 0, 0.62);
+    headCenterGroup.add(bezelMesh);
+
+    // Screen: rounded plate .9 x .84 at z .66
+    const screenGeo = new RoundedBoxGeometry(0.9, 0.84, 0.03, 3, 0.14);
+    const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+    screenMesh.position.set(0, 0, 0.66);
+    headCenterGroup.add(screenMesh);
+
+    // Ears: cylinder r .22 on both sides with caps
+    const earGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.16, 24);
+    const leftEar = new THREE.Mesh(earGeo, shellLightMat);
+    leftEar.rotation.z = Math.PI / 2;
+    leftEar.position.set(-0.80, 0, 0);
+    headCenterGroup.add(leftEar);
+
+    const rightEar = new THREE.Mesh(earGeo, shellLightMat);
+    rightEar.rotation.z = Math.PI / 2;
+    rightEar.position.set(0.80, 0, 0);
+    headCenterGroup.add(rightEar);
+
+    // Half-torus dark cable looping down on right ear
+    const cableGeo = new THREE.TorusGeometry(0.28, 0.035, 12, 24, Math.PI);
+    const cableMesh = new THREE.Mesh(cableGeo, jointsDarkMat);
+    cableMesh.position.set(0.86, -0.15, 0);
+    cableMesh.rotation.y = Math.PI / 2;
+    cableMesh.rotation.z = 0.3;
+    headCenterGroup.add(cableMesh);
+
+    // --------------------------------------------------------------------------
+    // 5. ARMS & LEGS CONSTRUCTION
+    // --------------------------------------------------------------------------
+    function createArm(isLeft) {
+      const armGroup = new THREE.Group();
+      const sign = isLeft ? -1 : 1;
+      armGroup.position.set(sign * 0.72, 0.28, 0);
+
+      const shoulderBall = new THREE.Mesh(new THREE.SphereGeometry(0.16, 20, 20), jointsDarkMat);
+      armGroup.add(shoulderBall);
+      armGroup.rotation.z = sign * 0.16;
+
+      const upperArm = new THREE.Mesh(new RoundedBoxGeometry(0.24, 0.48, 0.24, 3, 0.08), shellMat);
+      upperArm.position.set(0, -0.32, 0);
+      upperArm.castShadow = true;
+      armGroup.add(upperArm);
+
+      const elbowBall = new THREE.Mesh(new THREE.SphereGeometry(0.14, 20, 20), jointsDarkMat);
+      elbowBall.position.set(0, -0.62, 0);
+      armGroup.add(elbowBall);
+
+      const forearmGroup = new THREE.Group();
+      forearmGroup.position.set(0, -0.62, 0);
+      forearmGroup.rotation.x = -0.35;
+      armGroup.add(forearmGroup);
+
+      const forearmMesh = new THREE.Mesh(new RoundedBoxGeometry(0.22, 0.44, 0.22, 3, 0.06), shellMat);
+      forearmMesh.position.set(0, -0.26, 0);
+      forearmMesh.castShadow = true;
+      forearmGroup.add(forearmMesh);
+
+      const handMesh = new THREE.Mesh(new RoundedBoxGeometry(0.20, 0.22, 0.16, 3, 0.05), shellLightMat);
+      handMesh.position.set(0, -0.54, 0);
+      forearmGroup.add(handMesh);
+
+      const thumbMesh = new THREE.Mesh(new RoundedBoxGeometry(0.07, 0.12, 0.08, 2, 0.02), shellLightMat);
+      thumbMesh.position.set(sign * 0.11, -0.50, 0.04);
+      forearmGroup.add(thumbMesh);
+
+      torsoGroup.add(armGroup);
+      return { armGroup, forearmGroup };
+    }
+
+    const leftArm = createArm(true);
+    const rightArm = createArm(false);
+
+    function createLeg(isLeft) {
+      const legGroup = new THREE.Group();
+      const sign = isLeft ? -1 : 1;
+      legGroup.position.set(sign * 0.35, -0.80, 0);
+
+      const hipBall = new THREE.Mesh(new THREE.SphereGeometry(0.16, 20, 20), jointsDarkMat);
+      legGroup.add(hipBall);
+
+      const legBlock = new THREE.Mesh(new RoundedBoxGeometry(0.30, 0.72, 0.32, 3, 0.08), shellMat);
+      legBlock.position.set(0, -0.42, 0);
+      legBlock.castShadow = true;
+      legGroup.add(legBlock);
+
+      const ankle = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), jointsDarkMat);
+      ankle.position.set(0, -0.82, 0);
+      legGroup.add(ankle);
+
+      const foot = new THREE.Mesh(new RoundedBoxGeometry(0.36, 0.22, 0.58, 3, 0.06), shellLightMat);
+      foot.position.set(0, -0.98, 0.10);
+      foot.castShadow = true;
+      legGroup.add(foot);
+
+      torsoGroup.add(legGroup);
+    }
+
+    createLeg(true);
+    createLeg(false);
+
+    // --------------------------------------------------------------------------
+    // 6. MOTION CONTROLLER (SCROLL LERP, POINTER & IDLE SENSING)
+    // --------------------------------------------------------------------------
+    let targetP = 0;
+    let smoothedP = 0;
+
+    let targetPointerX = 0;
+    let targetPointerY = 0;
+    let smoothPointerX = 0;
+    let smoothPointerY = 0;
+
+    window.addEventListener('scroll', () => {
+      targetP = Math.min(2, Math.max(0, window.scrollY / window.innerHeight));
+    }, { passive: true });
+
+    window.addEventListener('mousemove', (e) => {
+      targetPointerX = (e.clientX / window.innerWidth) * 2 - 1;
+      targetPointerY = (e.clientY / window.innerHeight) * 2 - 1;
+    }, { passive: true });
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    const clock = new THREE.Clock();
+
+    // --------------------------------------------------------------------------
+    // 7. ANIMATION LOOP
+    // --------------------------------------------------------------------------
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const time = performance.now();
+      const elapsed = clock.getElapsedTime();
+
+      // Smooth scroll (8% per frame) & smooth pointer (6% per frame)
+      smoothedP += (targetP - smoothedP) * 0.08;
+      smoothPointerX += (targetPointerX - smoothPointerX) * 0.06;
+      smoothPointerY += (targetPointerY - smoothPointerY) * 0.06;
+
+      // Update Face Canvas (Eye blink & Quote transition once smoothedP > 1.55)
+      if (smoothedP > 1.55) {
+        faceScreen.setMode('quote');
+      } else {
+        faceScreen.setMode('eyes');
+      }
+      faceScreen.update(time);
+
+      // State Interpolation
+      const blend = easeInOutCubic(Math.min(1, smoothedP));
+
+      let baseCamZ = THREE.MathUtils.lerp(11.6, 6.9, blend);
+      let baseCamY = THREE.MathUtils.lerp(1.1, 1.95, blend);
+      let baseLookAtY = THREE.MathUtils.lerp(0.55, 1.72, blend);
+
+      let baseBodyYaw = THREE.MathUtils.lerp(-0.42, -0.2, blend);
+      let baseHeadYaw = THREE.MathUtils.lerp(-0.6, -0.06, blend);
+      let baseHeadPitch = THREE.MathUtils.lerp(0.16, 0.04, blend);
+      let baseHeadRoll = THREE.MathUtils.lerp(0.22, 0, blend);
+
+      // Mobile check: On screens under 900px, camera z is multiplied by 1.25
+      if (window.innerWidth <= 900) {
+        baseCamZ *= 1.25;
+      }
+
+      // Pointer Influence
+      const camX = smoothPointerX * 0.25;
+      const camY = baseCamY - smoothPointerY * 0.1;
+      const camZ = baseCamZ;
+
+      camera.position.set(camX, camY, camZ);
+      camera.lookAt(0, baseLookAtY, 0);
+
+      // Idle kinematics
+      const bodyBob = Math.sin(1.4 * elapsed) * 0.02;
+      robotRoot.position.y = bodyBob;
+
+      const finalBodyYaw = baseBodyYaw + smoothPointerX * 0.12;
+      robotRoot.rotation.y = finalBodyYaw;
+
+      const finalHeadYaw = baseHeadYaw + smoothPointerX * 0.45;
+      const finalHeadPitch = baseHeadPitch + smoothPointerY * 0.18 + Math.sin(0.9 * elapsed) * 0.02;
+      const finalHeadRoll = baseHeadRoll + Math.sin(0.7 * elapsed) * 0.02;
+      headPivotGroup.rotation.set(finalHeadPitch, finalHeadYaw, finalHeadRoll);
+
+      leftArm.armGroup.rotation.x = Math.sin(1.4 * elapsed) * 0.05;
+      rightArm.armGroup.rotation.x = Math.sin(1.4 * elapsed + Math.PI) * 0.05;
+      leftArm.forearmGroup.rotation.x = -0.35 + Math.sin(1.4 * elapsed) * 0.06;
+      rightArm.forearmGroup.rotation.x = -0.35 + Math.sin(1.4 * elapsed + Math.PI) * 0.06;
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // --------------------------------------------------------------------------
+    // 8. RESIZE HANDLER
+    // --------------------------------------------------------------------------
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+  </script>
+</body>
+</html>

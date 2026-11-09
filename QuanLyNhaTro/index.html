@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity RentMaster - Quản Lý Thuê Trọ Nâng Cao</title>
+    <!-- Google Fonts & Icon -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- HEADER & NAVBAR -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <span class="brand-icon">🏠</span>
+                <div>
+                    <h1 class="brand-title">RentMaster</h1>
+                    <span class="brand-tagline">Hệ thống quản lý phòng trọ Antigravity</span>
+                </div>
+            </div>
+
+            <!-- User session badge & logout -->
+            <div id="header-user-panel" class="user-panel hidden">
+                <div class="user-info">
+                    <span id="user-role-badge" class="badge">Chủ trọ</span>
+                    <strong id="user-display-name">Nguyễn Văn Chủ</strong>
+                </div>
+                <button id="btn-logout" class="btn btn-outline btn-sm">Đăng xuất</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="main-container">
+
+        <!-- =================================================================== -->
+        <!-- VIEW 1: AUTHENTICATION (Đăng nhập / Đăng ký) -->
+        <!-- =================================================================== -->
+        <section id="auth-section" class="view-section">
+            <div class="auth-wrapper">
+                <div class="auth-card">
+                    <div class="auth-tabs">
+                        <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Đăng Nhập</button>
+                        <button id="tab-register" class="tab-btn" onclick="switchAuthTab('register')">Đăng Ký Tài Khoản</button>
+                    </div>
+
+                    <!-- Quick Demo Logins for Testing / Grading -->
+                    <div class="demo-box">
+                        <div class="demo-title">⚡ Đăng nhập nhanh để trải nghiệm (1-Click Demo):</div>
+                        <div class="demo-buttons">
+                            <button class="btn btn-demo" onclick="demoLogin('chutro', '123456')">🔑 Chủ trọ (Full Quản lý)</button>
+                            <button class="btn btn-demo" onclick="demoLogin('nguyenvana', '123456')">👤 Khách A (P101 - Có Cảnh báo & QR)</button>
+                            <button class="btn btn-demo" onclick="demoLogin('tranthib', '123456')">👤 Khách B (P201)</button>
+                        </div>
+                    </div>
+
+                    <!-- Form Đăng nhập -->
+                    <form id="form-login" class="auth-form" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-username">Tên đăng nhập</label>
+                            <input type="text" id="login-username" class="form-control" placeholder="Nhập tên đăng nhập" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Mật khẩu</label>
+                            <input type="password" id="login-password" class="form-control" placeholder="Nhập mật khẩu (Mặc định: 123456)" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Đăng Nhập Vào Hệ Thống</button>
+                    </form>
+
+                    <!-- Form Đăng ký (Đã khóa quyền - Chỉ dành cho Người thuê) -->
+                    <form id="form-register" class="auth-form hidden" onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label for="reg-fullname">Họ và tên</label>
+                            <input type="text" id="reg-fullname" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-username">Tên đăng nhập mới</label>
+                            <input type="text" id="reg-username" class="form-control" placeholder="Tên tài khoản viết liền" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Mật khẩu</label>
+                            <input type="password" id="reg-password" class="form-control" placeholder="Tối thiểu 6 ký tự" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="reg-phone">Số điện thoại</label>
+                                <input type="tel" id="reg-phone" class="form-control" placeholder="090..." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-email">Email (tùy chọn)</label>
+                                <input type="email" id="reg-email" class="form-control" placeholder="email@gmail.com">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block">Hoàn Tất Đăng Ký Tài Khoản</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 2: LANDLORD DASHBOARD (Bảng điều khiển Chủ trọ) -->
+        <!-- =================================================================== -->
+        <section id="landlord-section" class="view-section hidden">
+            <!-- Navigation Sub-Tabs -->
+            <nav class="sub-nav">
+                <button class="nav-tab active" onclick="switchLandlordTab('tab-alerts')">
+                    🚨 Cảnh Báo Tự Động <span id="badge-alert-count" class="badge-count">0</span>
+                </button>
+                <button class="nav-tab" onclick="switchLandlordTab('tab-revenue')">
+                    📊 Doanh Thu & Cơ Sở
+                </button>
+                <button class="nav-tab" onclick="switchLandlordTab('tab-rooms')">
+                    🚪 Phòng & Nội Thất Check-in/out
+                </button>
+                <button class="nav-tab" onclick="switchLandlordTab('tab-contracts')">
+                    📄 Hợp Đồng & Hóa Đơn
+                </button>
+                <button class="nav-tab" onclick="switchLandlordTab('tab-maintenance')">
+                    🛠️ Xử Lý Sự Cố Bảo Trì
+                </button>
+            </nav>
+
+            <!-- 1. TAB CẢNH BÁO TỰ ĐỘNG (AUTOMATED ALERTS) -->
+            <div id="landlord-tab-alerts" class="tab-pane active">
+                <div class="alerts-container">
+                    <div class="section-header">
+                        <h2>🚨 Hệ Thống Cảnh Báo Thông Minh (Automated Alerts)</h2>
+                        <span class="text-muted">Tự động phát hiện hợp đồng sắp hết hạn (15-30 ngày) và hóa đơn quá hạn cần thu tiền</span>
+                    </div>
+
+                    <div class="grid grid-2">
+                        <!-- Cảnh báo Hợp đồng sắp hết hạn -->
+                        <div class="alert-box alert-warning">
+                            <div class="alert-box-header">
+                                <h3>⏳ Hợp Đồng Sắp Hết Hạn (&lt; 30 ngày)</h3>
+                                <span id="count-expiring" class="badge badge-warning">0</span>
+                            </div>
+                            <div id="list-expiring-contracts" class="alert-list">
+                                <!-- Render động qua Javascript (Dynamic Data Renderer) -->
+                            </div>
+                        </div>
+
+                        <!-- Cảnh báo Hóa đơn quá hạn -->
+                        <div class="alert-box alert-danger">
+                            <div class="alert-box-header">
+                                <h3>⚠️ Hóa Đơn Quá Hạn Chưa Thu Tiền</h3>
+                                <span id="count-overdue" class="badge badge-danger">0</span>
+                            </div>
+                            <div id="list-overdue-invoices" class="alert-list">
+                                <!-- Render động qua Javascript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. TAB DOANH THU & ĐA CƠ SỞ (MULTI-PROPERTY SCALING) -->
+            <div id="landlord-tab-revenue" class="tab-pane hidden">
+                <div class="section-header flex-between">
+                    <div>
+                        <h2>📊 Thống Kê Doanh Thu Đa Cơ Sở</h2>
+                        <span class="text-muted">Theo dõi dòng tiền thu được và tỷ lệ lấp đầy phòng theo từng khu trọ</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('modal-add-property')">+ Thêm Cơ Sở Mới</button>
+                </div>
+
+                <!-- Bộ lọc cơ sở -->
+                <div class="filter-bar">
+                    <label for="filter-property-select"><strong>Lọc theo cơ sở:</strong></label>
+                    <select id="filter-property-select" class="form-control" onchange="handlePropertyFilterChange(event)">
+                        <option value="">-- Tất cả cơ sở --</option>
+                        <!-- Options render động -->
+                    </select>
+                </div>
+
+                <!-- KPI Metric Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card bg-emerald">
+                        <div class="kpi-label">Tổng Doanh Thu Đã Thu</div>
+                        <div id="kpi-paid-revenue" class="kpi-value">0 đ</div>
+                        <div class="kpi-desc">Tiền thuê & dịch vụ đã quyết toán</div>
+                    </div>
+                    <div class="kpi-card bg-amber">
+                        <div class="kpi-label">Doanh Thu Đang Chờ Thu</div>
+                        <div id="kpi-pending-revenue" class="kpi-value">0 đ</div>
+                        <div class="kpi-desc">Bao gồm hóa đơn chưa thanh toán & quá hạn</div>
+                    </div>
+                    <div class="kpi-card bg-indigo">
+                        <div class="kpi-label">Tỷ Lệ Lấp Đầy Phòng</div>
+                        <div id="kpi-occupancy" class="kpi-value">0%</div>
+                        <div id="kpi-rooms-stat" class="kpi-desc">0 / 0 phòng đang thuê</div>
+                    </div>
+                </div>
+
+                <!-- Bảng thống kê chi tiết theo từng cơ sở -->
+                <div class="card mt-4">
+                    <h3>Chi Tiết Từng Cơ Sở</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tên Cơ Sở</th>
+                                    <th>Tổng Số Phòng</th>
+                                    <th>Phòng Đang Thuê</th>
+                                    <th>Tỷ Lệ Lấp Đầy</th>
+                                    <th>Đã Thu</th>
+                                    <th>Còn Nợ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-properties-stats">
+                                <!-- Render động qua Javascript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. TAB PHÒNG & NỘI THẤT CHECK-IN/OUT (ROOMS & INVENTORY) -->
+            <div id="landlord-tab-rooms" class="tab-pane hidden">
+                <div class="section-header flex-between">
+                    <div>
+                        <h2>🚪 Quản Lý Phòng & Bàn Giao Nội Thất</h2>
+                        <span class="text-muted">Kiểm kê thiết bị (điều hòa, tủ lạnh, nệm) lúc bàn giao check-in và trả phòng check-out</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline" onclick="openModal('modal-add-room')">+ Thêm Phòng</button>
+                        <button class="btn btn-primary" onclick="openModal('modal-add-inventory')">+ Thêm Nội Thất Cho Phòng</button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Data List Phòng -->
+                <div class="toolbar">
+                    <input type="text" id="search-rooms" class="form-control" placeholder="🔍 Tìm kiếm theo số phòng hoặc cơ sở..." oninput="handleSearchRooms(event)">
+                </div>
+
+                <div id="rooms-grid" class="cards-grid">
+                    <!-- Render động danh sách phòng qua Javascript -->
+                </div>
+            </div>
+
+            <!-- 4. TAB HỢP ĐỒNG & HÓA ĐƠN -->
+            <div id="landlord-tab-contracts" class="tab-pane hidden">
+                <div class="section-header flex-between">
+                    <div>
+                        <h2>📄 Quản Lý Người Thuê & Hợp Đồng Phòng</h2>
+                        <span class="text-muted">Theo dõi tài khoản người thuê vừa đăng ký, lập hợp đồng xếp phòng và xuất hóa đơn định kỳ</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline" onclick="openModal('modal-add-contract')">+ Lập Hợp Đồng Mới</button>
+                        <button class="btn btn-primary" onclick="openModal('modal-add-invoice')">+ Xuất Hóa Đơn Tháng</button>
+                    </div>
+                </div>
+
+                <!-- BẢNG MỚI: DANH SÁCH NGƯỜI THUÊ MỚI / CHỜ XẾP PHÒNG (AGENT 2) -->
+                <div class="card mb-4">
+                    <div class="card-header flex-between">
+                        <div>
+                            <h3>👥 Danh Sách Người Thuê Mới / Chờ Xếp Phòng</h3>
+                            <span class="text-muted">Tất cả tài khoản người thuê vừa đăng ký vào hệ thống, sẵn sàng để lập hợp đồng</span>
+                        </div>
+                        <span id="badge-pending-tenants" class="badge badge-warning">0 người chờ xếp phòng</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Họ và Tên</th>
+                                    <th>Tên Đăng Nhập</th>
+                                    <th>Số Điện Thoại</th>
+                                    <th>Email</th>
+                                    <th>Phòng Đang Ở</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-pending-tenants">
+                                <!-- Render động qua Javascript (Dynamic Data Renderer) -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bảng Hợp Đồng -->
+                <div class="card mb-4">
+                    <h3>Danh Sách Hợp Đồng Hiện Hữu</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Phòng</th>
+                                    <th>Cơ Sở</th>
+                                    <th>Người Thuê</th>
+                                    <th>Thời Hạn Thuê</th>
+                                    <th>Tiền Phòng</th>
+                                    <th>Tiền Cọc</th>
+                                    <th>Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-contracts">
+                                <!-- Render động -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bảng Hóa Đơn -->
+                <div class="card">
+                    <h3>Danh Sách Hóa Đơn Tiền Phòng & Dịch Vụ</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã HĐ</th>
+                                    <th>Phòng</th>
+                                    <th>Tháng</th>
+                                    <th>Tiền Phòng</th>
+                                    <th>Điện (Số - Tiền)</th>
+                                    <th>Nước & DV</th>
+                                    <th>Tổng Tiền</th>
+                                    <th>Hạn Đóng</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-invoices">
+                                <!-- Render động -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. TAB XỬ LÝ SỰ CỐ BẢO TRÌ (MAINTENANCE DISPATCH) -->
+            <div id="landlord-tab-maintenance" class="tab-pane hidden">
+                <div class="section-header">
+                    <h2>🛠️ Quản lý Phản ánh & Sự cố</h2>
+                    <span class="text-muted">Tiếp nhận và điều phối xử lý phản ánh kỹ thuật từ người thuê các khu trọ</span>
+                </div>
+
+                <!-- BẢNG: QUẢN LÝ PHẢN ÁNH & SỰ CỐ (AGENT 2) -->
+                <div class="card mb-4" style="border-left: 4px solid var(--warning, #f59e0b);">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3>📋 Danh Sách Phản Ánh & Sự Cố Cần Xử Lý</h3>
+                            <span class="text-muted">Cập nhật nhanh tiến độ xử lý trực tiếp trên từng phản ánh</span>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="loadLandlordMaintenance()">🔄 Tải lại dữ liệu</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã #</th>
+                                        <th>Phòng</th>
+                                        <th>Khu Trọ / Cơ Sở</th>
+                                        <th>Nội Dung Phản Ánh</th>
+                                        <th>Người Gửi</th>
+                                        <th>Thời Gian Báo</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Cập Nhật Tiến Độ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-landlord-maintenance">
+                                    <!-- Render động từ API GET /api/landlord/<id>/maintenance qua Javascript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="maintenance-list-landlord" class="maintenance-cards-list">
+                    <!-- Render động thẻ chi tiết qua Javascript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 3: TENANT PORTAL (Cổng Thông Tin Dành Cho Người Thuê) -->
+        <!-- =================================================================== -->
+        <section id="tenant-section" class="view-section hidden">
+            <div class="welcome-banner">
+                <div class="banner-content">
+                    <h2>Xin chào, <span id="tenant-welcome-name">Bạn</span> 👋</h2>
+                    <p>Chào mừng bạn đến với Cổng quản lý thông tin thuê phòng trọ cá nhân.</p>
+                </div>
+                <button class="btn btn-warning" onclick="openModal('modal-tenant-report-issue')">🚨 Báo Cáo Sự Cố Mới</button>
+            </div>
+
+            <!-- Grid 2 cột: Thông tin phòng/hợp đồng & Hóa đơn cần đóng -->
+            <div class="grid grid-2 mt-4">
+                <!-- Cột 1: Thông tin phòng & Hợp đồng -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📋 Thông Tin Hợp Đồng & Phòng Thuê</h3>
+                    </div>
+                    <div id="tenant-contract-info" class="details-list">
+                        <!-- Render động qua Javascript -->
+                    </div>
+
+                    <h4 class="mt-4">📦 Nội Thất Bàn Giao Trong Phòng:</h4>
+                    <div id="tenant-room-inventory" class="inventory-tag-list">
+                        <!-- Render động qua Javascript -->
+                    </div>
+                </div>
+
+                <!-- Cột 2: Hóa Đơn & Nút Thanh Toán QR -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>💰 Hóa Đơn & Lịch Sử Đóng Tiền</h3>
+                    </div>
+                    <div id="tenant-invoices-list" class="invoice-cards-list">
+                        <!-- Render động qua Javascript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lịch sử sự cố đã báo cáo -->
+            <div class="card mt-4">
+                <div class="card-header flex-between">
+                    <h3>🛠️ Tiến Độ Xử Lý Các Sự Cố Bạn Đã Báo Cáo</h3>
+                    <button class="btn btn-sm btn-primary" onclick="openModal('modal-tenant-report-issue')">+ Báo Sự Cố</button>
+                </div>
+                <div id="tenant-maintenance-list" class="maintenance-cards-list">
+                    <!-- Render động qua Javascript -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ======================================================================= -->
+    <!-- MODAL DIALOGS (Cửa sổ tương tác) -->
+    <!-- ======================================================================= -->
+
+    <!-- Modal 1: Thanh Toán QR Code (VietQR + Offline Canvas) -->
+    <div id="modal-qr-payment" class="modal-backdrop hidden">
+        <div class="modal-box modal-qr">
+            <div class="modal-header">
+                <h3>Thanh Toán Hóa Đơn Qua Mã QR</h3>
+                <button class="btn-close" onclick="closeModal('modal-qr-payment')">&times;</button>
+            </div>
+            <div class="modal-body text-center">
+                <p id="qr-desc" class="text-muted">Quét mã QR dưới đây bằng app Ngân hàng (VietQR / Napas247)</p>
+                
+                <!-- Khung hiển thị QR -->
+                <div class="qr-container">
+                    <img id="qr-image" src="" alt="Mã VietQR Thanh Toán" class="qr-code-img" onerror="handleQRFallback()">
+                    <canvas id="qr-canvas-fallback" class="qr-canvas hidden"></canvas>
+                </div>
+
+                <!-- Thông tin chuyển khoản chi tiết -->
+                <div class="qr-details-table">
+                    <div class="qr-row"><span>Ngân hàng:</span> <strong id="qr-bank-name">MBBank</strong></div>
+                    <div class="qr-row"><span>Số tài khoản:</span> <strong id="qr-acc-no">0901234567</strong></div>
+                    <div class="qr-row"><span>Chủ tài khoản:</span> <strong id="qr-acc-name">NGUYEN VAN CHU</strong></div>
+                    <div class="qr-row"><span>Số tiền:</span> <strong id="qr-amount" class="text-emerald">3.987.500 đ</strong></div>
+                    <div class="qr-row"><span>Nội dung chuyển:</span> <strong id="qr-content" class="text-indigo">TIEN PHONG P101 T11</strong></div>
+                </div>
+            </div>
+            <div class="modal-footer flex-between">
+                <button class="btn btn-outline" onclick="closeModal('modal-qr-payment')">Đóng</button>
+                <button id="btn-confirm-paid" class="btn btn-success" onclick="handleConfirmPayment()">✅ Tôi Đã Chuyển Khoản Thành Công</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Báo Cáo Sự Cố (Người thuê) -->
+    <div id="modal-tenant-report-issue" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>🚨 Báo Cáo Sự Cố Kỹ Thuật (Điện / Nước / Nội Thất)</h3>
+                <button class="btn-close" onclick="closeModal('modal-tenant-report-issue')">&times;</button>
+            </div>
+            <form onsubmit="handleSubmitMaintenance(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="maint-title">Vấn đề gặp phải</label>
+                        <input type="text" id="maint-title" class="form-control" placeholder="Ví dụ: Rò rỉ nước bồn cầu, mất mạng wifi..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="maint-priority">Mức độ khẩn cấp</label>
+                        <select id="maint-priority" class="form-control">
+                            <option value="Normal">Bình thường (sửa trong 1-2 ngày)</option>
+                            <option value="High">Cao (cần sửa trong ngày)</option>
+                            <option value="Urgent">Khẩn cấp (nguy cơ cháy nổ, ngập nước)</option>
+                            <option value="Low">Thấp (không ảnh hưởng sinh hoạt ngay)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maint-desc">Mô tả chi tiết sự cố</label>
+                        <textarea id="maint-desc" class="form-control" rows="4" placeholder="Mô tả kỹ triệu chứng để thợ chuẩn bị đồ nghề..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-tenant-report-issue')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Gửi Báo Cáo Cho Chủ Trọ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: Thêm Cơ Sở Mới (Chủ trọ) -->
+    <div id="modal-add-property" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>+ Thêm Cơ Sở Cho Thuê Mới</h3>
+                <button class="btn-close" onclick="closeModal('modal-add-property')">&times;</button>
+            </div>
+            <form onsubmit="handleCreateProperty(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="prop-name">Tên cơ sở / Tòa nhà</label>
+                        <input type="text" id="prop-name" class="form-control" placeholder="Ví dụ: Cơ sở 3 - Đống Đa" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prop-address">Địa chỉ chi tiết</label>
+                        <input type="text" id="prop-address" class="form-control" placeholder="Số nhà, ngõ, đường, quận..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prop-desc">Mô tả cơ sở</label>
+                        <input type="text" id="prop-desc" class="form-control" placeholder="Tiện ích: thang máy, khóa vân tay...">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="prop-bank">Ngân hàng nhận tiền</label>
+                            <input type="text" id="prop-bank" class="form-control" value="MBBank">
+                        </div>
+                        <div class="form-group">
+                            <label for="prop-acc-no">Số tài khoản</label>
+                            <input type="text" id="prop-acc-no" class="form-control" placeholder="Số tài khoản">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prop-acc-name">Tên chủ tài khoản</label>
+                        <input type="text" id="prop-acc-name" class="form-control" placeholder="NGUYEN VAN A">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-property')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu Cơ Sở</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 4: Thêm Phòng Mới -->
+    <div id="modal-add-room" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>+ Thêm Phòng Trọ Mới</h3>
+                <button class="btn-close" onclick="closeModal('modal-add-room')">&times;</button>
+            </div>
+            <form onsubmit="handleCreateRoom(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="room-prop-id">Thuộc cơ sở nào:</label>
+                        <select id="room-prop-id" class="form-control" required></select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="room-number">Số phòng</label>
+                            <input type="text" id="room-number" class="form-control" placeholder="P101, P202..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="room-type">Loại phòng</label>
+                            <input type="text" id="room-type" class="form-control" placeholder="Studio, Gác lửng..." value="Studio khép kín">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="room-price">Giá thuê (VNĐ/tháng)</label>
+                            <input type="number" id="room-price" class="form-control" placeholder="3500000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="room-area">Diện tích (m²)</label>
+                            <input type="number" id="room-area" class="form-control" placeholder="25" value="25">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-room')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm Phòng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 5: Thêm Nội Thất / Bàn Giao (Inventory) -->
+    <div id="modal-add-inventory" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>+ Thêm Tài Sản / Nội Thất Bàn Giao</h3>
+                <button class="btn-close" onclick="closeModal('modal-add-inventory')">&times;</button>
+            </div>
+            <form onsubmit="handleCreateInventory(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="inv-room-id">Chọn phòng bàn giao:</label>
+                        <select id="inv-room-id" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inv-name">Tên thiết bị / Nội thất</label>
+                        <input type="text" id="inv-name" class="form-control" placeholder="Điều hòa, Tủ lạnh, Giường ngủ..." required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inv-qty">Số lượng</label>
+                            <input type="number" id="inv-qty" class="form-control" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="inv-condition">Tình trạng lúc check-in</label>
+                            <input type="text" id="inv-condition" class="form-control" value="Mới 100% / Hoạt động tốt">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inv-notes">Ghi chú thêm</label>
+                        <input type="text" id="inv-notes" class="form-control" placeholder="Mã model, lưu ý sử dụng...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-inventory')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu Nội Thất</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 6: Xuất Hóa Đơn Tháng -->
+    <div id="modal-add-invoice" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>+ Xuất Hóa Đơn Tháng (Tính Tiền Điện Nước)</h3>
+                <button class="btn-close" onclick="closeModal('modal-add-invoice')">&times;</button>
+            </div>
+            <form onsubmit="handleCreateInvoice(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="inv-contract-id">Hợp đồng phòng:</label>
+                        <select id="inv-contract-id" class="form-control" onchange="autoFillInvoiceRent(event)" required></select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inv-month">Tháng hóa đơn</label>
+                            <input type="month" id="inv-month" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="inv-due-date">Hạn thanh toán</label>
+                            <input type="date" id="inv-due-date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inv-room-rent">Tiền phòng (VNĐ)</label>
+                        <input type="number" id="inv-room-rent" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inv-e-start">Số điện đầu</label>
+                            <input type="number" id="inv-e-start" class="form-control" value="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="inv-e-end">Số điện cuối</label>
+                            <input type="number" id="inv-e-end" class="form-control" value="160">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inv-water">Tiền nước (VNĐ)</label>
+                            <input type="number" id="inv-water" class="form-control" value="80000">
+                        </div>
+                        <div class="form-group">
+                            <label for="inv-service">Dịch vụ (Wifi, rác)</label>
+                            <input type="number" id="inv-service" class="form-control" value="150000">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-invoice')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Phát Hành Hóa Đơn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 7: Lập Hợp Đồng Mới -->
+    <div id="modal-add-contract" class="modal-backdrop hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>+ Lập Hợp Đồng Thuê Phòng Mới</h3>
+                <button class="btn-close" onclick="closeModal('modal-add-contract')">&times;</button>
+            </div>
+            <form onsubmit="handleCreateContract(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="contract-room-id">Chọn phòng trống:</label>
+                        <select id="contract-room-id" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contract-tenant-id">Khách thuê:</label>
+                        <select id="contract-tenant-id" class="form-control" required></select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contract-start">Ngày bắt đầu</label>
+                            <input type="date" id="contract-start" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-end">Ngày kết thúc</label>
+                            <input type="date" id="contract-end" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contract-rent">Giá thuê/tháng (VNĐ)</label>
+                            <input type="number" id="contract-rent" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-deposit">Tiền cọc giữ phòng (VNĐ)</label>
+                            <input type="number" id="contract-deposit" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-contract')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Ký & Lưu Hợp Đồng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- JAVASCRIPT THUẦN (TUÂN THỦ CHUẨN DYNAMIC_DATA_RENDERER) -->
+    <script src="script.js"></script>
+</body>
+</html>
+

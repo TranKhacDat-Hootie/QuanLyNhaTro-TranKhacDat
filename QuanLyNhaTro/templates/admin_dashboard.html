@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentMaster - Bảng Điều Khiển Chủ Trọ</title>
+  
+  <!-- Google Fonts: IBM Plex Mono & Schibsted Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #efece6;
+      --surface: #ffffff;
+      --text: #141414;
+      --dim-text: #666666;
+      --faint-text: #999999;
+      --border: rgba(20, 20, 20, 0.12);
+      --border-dark: #141414;
+      --accent-red: #d32f2f;
+      --accent-green: #2e7d32;
+      --accent-blue: #1565c0;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* --------------------------------------------------------------------------
+       SIDEBAR CỐ ĐỊNH BÊN TRÁI (260px)
+       -------------------------------------------------------------------------- */
+    .sidebar {
+      width: 260px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #ff5a5f;
+      margin-bottom: 4px;
+    }
+    .brand-title {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+
+    .user-profile-card {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(20, 20, 20, 0.02);
+    }
+    .user-profile-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim-text);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .user-profile-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      margin-top: 2px;
+    }
+    .user-profile-role {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #ff5a5f;
+      font-weight: 600;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      color: var(--text);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid transparent;
+      cursor: pointer;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+    .menu-item:hover {
+      background: rgba(20, 20, 20, 0.04);
+      border-color: var(--border);
+    }
+    .menu-item.active {
+      background: var(--text);
+      color: var(--bg);
+      font-weight: 700;
+      border-color: var(--text);
+    }
+    .menu-badge {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 2px 6px;
+      border: 1px solid currentColor;
+      border-radius: 2px;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-logout {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--text);
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    /* --------------------------------------------------------------------------
+       MAIN CONTENT KHÔNG GIAN CHÍNH
+       -------------------------------------------------------------------------- */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-header {
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .top-breadcrumb {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim-text);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .top-breadcrumb strong {
+      color: var(--text);
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border: 1px solid var(--border-dark);
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .btn-export:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .content-body {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      max-width: 1400px;
+    }
+
+    /* CƠ CHẾ TAB ẨN / HIỆN NỘI DUNG */
+    .dashboard-tab-pane {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    .dashboard-tab-pane.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TIÊU ĐỀ PHẦN */
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .section-title::before {
+      content: '//';
+      color: #ff5a5f;
+    }
+
+    /* --------------------------------------------------------------------------
+       TAB 1: TỔNG QUAN (CARDS THỐNG KÊ NHANH)
+       -------------------------------------------------------------------------- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: var(--bg);
+      border: 1px solid var(--border-dark);
+      padding: 24px;
+      position: relative;
+    }
+    .stat-card-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim-text);
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .stat-card-value {
+      font-family: var(--font-mono);
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+    }
+    .stat-card-sub {
+      font-size: 12px;
+      color: var(--dim-text);
+      margin-top: 10px;
+    }
+
+    .overview-summary-banner {
+      border: 1px solid var(--border-dark);
+      padding: 20px 24px;
+      background: rgba(20, 20, 20, 0.02);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      position: relative;
+      line-height: 1.6;
+    }
+    .overview-summary-banner strong {
+      color: var(--accent-red);
+    }
+
+    /* Corner brackets */
+    .cb {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-color: var(--text);
+      border-style: solid;
+    }
+    .cb-tl { top: -3px; left: -3px; border-width: 1px 0 0 1px; }
+    .cb-tr { top: -3px; right: -3px; border-width: 1px 1px 0 0; }
+    .cb-bl { bottom: -3px; left: -3px; border-width: 0 0 1px 1px; }
+    .cb-br { bottom: -3px; right: -3px; border-width: 0 1px 1px 0; }
+
+    /* --------------------------------------------------------------------------
+       BẢNG DỮ LIỆU HTML (TAB 2 & TAB 3)
+       -------------------------------------------------------------------------- */
+    .table-container {
+      background: var(--bg);
+      border: 1px solid var(--border-dark);
+      position: relative;
+      overflow-x: auto;
+    }
+    .table-header-bar {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(20, 20, 20, 0.02);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    .data-table th {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--dim-text);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-dark);
+      background: rgba(20, 20, 20, 0.03);
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .data-table tr:hover {
+      background: rgba(20, 20, 20, 0.02);
+    }
+    .mono-cell {
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .mono-bold {
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    /* Floor Plan Grid 20 Phòng */
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+    }
+    .room-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .room-card:hover {
+      border-color: var(--border-dark);
+    }
+    .room-card.occupied {
+      border-left: 3px solid #ff5a5f;
+    }
+    .room-card.available {
+      border-left: 3px solid var(--accent-green);
+    }
+    .room-card-number {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .room-card-type {
+      font-size: 11px;
+      color: var(--dim-text);
+    }
+    .room-card-price {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+    .badge-occupied {
+      color: #ff5a5f;
+      border-color: #ff5a5f;
+      background: rgba(255, 90, 95, 0.08);
+    }
+    .badge-available {
+      color: var(--accent-green);
+      border-color: var(--accent-green);
+      background: rgba(46, 125, 50, 0.08);
+    }
+    .badge-room-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border: 1px solid var(--text);
+      background: var(--surface);
+    }
+    .badge-unassigned {
+      color: #e65100;
+      border-color: #ff9800;
+      background: rgba(255, 152, 0, 0.1);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border: 1px solid;
+    }
+
+    /* BUTTONS HÀNH ĐỘNG */
+    .btn-action-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-invoice {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: #2e7d32;
+      color: #ffffff;
+      border: 1px solid #1b5e20;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s;
+    }
+    .btn-invoice:hover {
+      opacity: 0.88;
+    }
+    .btn-assign {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: #1565c0;
+      color: #ffffff;
+      border: 1px solid #0d47a1;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s;
+    }
+    .btn-assign:hover {
+      opacity: 0.88;
+    }
+    .btn-delete {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: transparent;
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover {
+      background: var(--accent-red);
+      color: #ffffff;
+    }
+
+    /* --------------------------------------------------------------------------
+       POPUP / MODAL XẾP PHÒNG
+       -------------------------------------------------------------------------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 20, 20, 0.5);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      width: 90%;
+      max-width: 480px;
+      background: var(--bg);
+      border: 1px solid var(--border-dark);
+      padding: 24px 28px;
+      position: relative;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .modal-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+    .modal-close {
+      background: none;
+      border: 1px solid transparent;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 6px;
+      color: var(--text);
+      line-height: 1;
+    }
+    .modal-close:hover { border-color: var(--border-dark); }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--dim-text);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .form-control {
+      width: 100%;
+      height: 38px;
+      background: #ffffff;
+      border: 1px solid var(--border-dark);
+      padding: 0 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+    .btn-secondary {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid var(--border-dark);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary {
+      padding: 8px 18px;
+      background: var(--text);
+      color: var(--bg);
+      border: 1px solid var(--border-dark);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border); }
+      .sidebar-menu { flex-direction: row; overflow-x: auto; }
+      .content-body { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== SIDEBAR TRÁI (3 TABS RIÊNG BIỆT) ==================== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-badge">PORTAL // LANDLORD</span>
+      <div class="brand-title">RENTMASTER</div>
+    </div>
+
+    <div class="user-profile-card">
+      <span class="user-profile-label">TÀI KHOẢN ĐANG ĐĂNG NHẬP</span>
+      <div class="user-profile-name">{{ user.full_name or 'Quản Trị Viên' }}</div>
+      <div class="user-profile-role">CHỦ TRỌ (@{{ user.username }})</div>
+    </div>
+
+    <nav class="sidebar-menu">
+      <button type="button" class="menu-item active" onclick="switchDashboardTab('tab-overview', this)">
+        <span>📊</span>
+        <span>Tổng Quan</span>
+      </button>
+      <button type="button" class="menu-item" onclick="switchDashboardTab('tab-rooms', this)">
+        <span>🏠</span>
+        <span>Sơ Đồ & Phòng</span>
+        <span class="menu-badge">{{ stats.total_rooms }}</span>
+      </button>
+      <button type="button" class="menu-item" onclick="switchDashboardTab('tab-tenants', this)">
+        <span>👥</span>
+        <span>Quản Lý Cư Dân</span>
+        <span class="menu-badge">{{ stats.total_tenants }}</span>
+      </button>
+      <button type="button" class="menu-item" onclick="switchDashboardTab('tab-invoices', this)">
+        <span>💰</span>
+        <span>Tài Chính & Hóa Đơn</span>
+        <span class="menu-badge">{{ invoices|length }}</span>
+      </button>
+      <button type="button" class="menu-item" onclick="switchDashboardTab('tab-notifications', this)">
+        <span>📢</span>
+        <span>Bảng Tin & Thông Báo</span>
+        <span class="menu-badge">{{ notifications|length }}</span>
+      </button>
+      <button type="button" class="menu-item" onclick="switchDashboardTab('tab-feedbacks', this)">
+        <span>🚨</span>
+        <span>Quản Lý Phản Hồi</span>
+        <span class="menu-badge" id="menu-feedback-badge" style="border-color: #ff5a5f; color: #ff5a5f; {% if pending_feedbacks_count > 0 %}background: rgba(255, 90, 95, 0.15); font-weight: 700;{% endif %}">{{ pending_feedbacks_count }}</span>
+      </button>
+      <a href="/inspector" class="menu-item" target="_blank" style="margin-top: 10px; border-color: rgba(99, 102, 241, 0.4); color: #4f46e5; background: rgba(99, 102, 241, 0.08); font-weight: 600;">
+        <span>🔍</span>
+        <span>DB Live Inspector ↗</span>
+      </a>
+      <a href="/" class="menu-item" target="_blank" style="margin-top: 4px;">
+        <span>🌐</span>
+        <span>Trang Chủ 3D ↗</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn-logout">⚿ ĐĂNG XUẤT HỆ THỐNG</a>
+    </div>
+  </aside>
+
+  <!-- ==================== KHÔNG GIAN NỘI DUNG CHÍNH ==================== -->
+  <main class="main-wrapper">
+    <header class="top-header">
+      <div class="top-breadcrumb">
+        ADMIN CONSOLE / <strong id="current-tab-title">TỔNG QUAN</strong>
+        {% if pending_feedbacks_count > 0 %}
+          <span style="display: inline-flex; align-items: center; gap: 4px; margin-left: 14px; padding: 2px 8px; background: rgba(255, 90, 95, 0.12); border: 1px solid #ff5a5f; color: #d32f2f; font-size: 11px; font-family: var(--font-mono); font-weight: 700; cursor: pointer;" onclick="switchDashboardTab('tab-feedbacks', document.querySelectorAll('.sidebar-menu .menu-item')[5])">
+            🚨 {{ pending_feedbacks_count }} SỰ CỐ CHỜ XỬ LÝ
+          </span>
+        {% endif %}
+      </div>
+      <div class="top-actions">
+        <a href="/inspector" target="_blank" class="btn-export" style="background: rgba(99, 102, 241, 0.1); border-color: #6366f1; color: #4338ca; text-decoration: none;">🔍 DB LIVE INSPECTOR</a>
+        <a href="/api/export/invoices" class="btn-export">↓ XUẤT TỔNG HỢP CSV</a>
+      </div>
+    </header>
+
+    <div class="content-body">
+
+      <!-- ======================================================================
+           TAB 1: TỔNG QUAN (CHỈ HIỂN THỊ CARDS THỐNG KÊ NHANH)
+           ====================================================================== -->
+      <section id="tab-overview" class="dashboard-tab-pane active">
+        {% if pending_feedbacks_count > 0 %}
+        <div class="corner-brackets" style="margin-bottom: 24px; border: 1px solid #ff5a5f; background: rgba(255, 90, 95, 0.06); padding: 16px 20px;">
+          <span class="cb cb-tl" style="border-color: #ff5a5f;"></span><span class="cb cb-tr" style="border-color: #ff5a5f;"></span>
+          <span class="cb cb-bl" style="border-color: #ff5a5f;"></span><span class="cb cb-br" style="border-color: #ff5a5f;"></span>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: #d32f2f; margin-bottom: 4px;">
+                🚨 [THÔNG BÁO KHẨN] CÓ {{ pending_feedbacks_count }} BÁO CÁO SỰ CỐ TỪ KHÁCH THUÊ CHỜ CHỦ TRỌ XỬ LÝ!
+              </div>
+              <div style="font-size: 13px; color: var(--text);">
+                Khách thuê vừa gửi phản ánh hỏng hóc kỹ thuật (điện, nước, thiết bị). Vui lòng tiếp nhận và kiểm tra thợ sửa chữa sớm nhất.
+              </div>
+            </div>
+            <button type="button" class="btn-primary" style="background: #d32f2f; border-color: #b71c1c;" onclick="switchDashboardTab('tab-feedbacks', document.querySelectorAll('.sidebar-menu .menu-item')[5])">
+              <span>XEM VÀ TIẾP NHẬN SỰ CỐ ➔</span>
+            </button>
+          </div>
+        </div>
+        {% endif %}
+
+        <h2 class="section-title">CHỈ SỐ TỔNG QUAN HỆ THỐNG</h2>
+
+        <div class="stats-grid">
+          <!-- Card 1: Tổng số phòng -->
+          <div class="stat-card">
+            <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+            <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+            <span class="stat-card-badge">TỔNG SỐ PHÒNG TRỌ</span>
+            <div class="stat-card-value">{{ stats.total_rooms }}</div>
+            <div class="stat-card-sub">Tổng quy mô phòng trong khu trọ</div>
+          </div>
+
+          <!-- Card 2: Số phòng trống -->
+          <div class="stat-card">
+            <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+            <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+            <span class="stat-card-badge">SỐ PHÒNG CÒN TRỐNG</span>
+            <div class="stat-card-value" style="color: var(--accent-green);">{{ stats.available_rooms }}</div>
+            <div class="stat-card-sub">Sẵn sàng để xếp cho khách mới</div>
+          </div>
+
+          <!-- Card 3: Tổng số khách thuê -->
+          <div class="stat-card">
+            <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+            <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+            <span class="stat-card-badge">TỔNG SỐ KHÁCH THUÊ</span>
+            <div class="stat-card-value">{{ stats.total_tenants }}</div>
+            <div class="stat-card-sub">Cư dân đã đăng ký tài khoản</div>
+          </div>
+
+          <!-- Card 4: Ước tính doanh thu -->
+          <div class="stat-card">
+            <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+            <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+            <span class="stat-card-badge">ƯỚC TÍNH DOANH THU THÁNG</span>
+            <div class="stat-card-value" style="color: #ff5a5f;">{{ "{:,.0f}".format(stats.estimated_revenue) }} đ</div>
+            <div class="stat-card-sub">Dựa trên {{ stats.rented_rooms }} phòng đang cho thuê</div>
+          </div>
+        </div>
+
+        <div class="overview-summary-banner">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+          <strong>THÔNG BÁO VẬN HÀNH:</strong> Hiện có <strong>{{ stats.available_rooms }}</strong> phòng trống sẵn sàng xếp chỗ. Hãy chuyển qua tab <em>"Quản Lý Khách Thuê"</em> để duyệt và xếp phòng cho khách mới đăng ký, hoặc tab <em>"Quản Lý Phòng"</em> để in hóa đơn tiền phòng.
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           TAB 2: QUẢN LÝ PHÒNG (SƠ ĐỒ TRỰC QUAN + BẢNG PHÒNG + NÚT XUẤT HÓA ĐƠN)
+           ====================================================================== -->
+      <section id="tab-rooms" class="dashboard-tab-pane">
+        <h2 class="section-title">SƠ ĐỒ MẶT BẰNG & QUẢN LÝ PHÒNG TRỌ</h2>
+
+        <!-- SƠ ĐỒ TRỰC QUAN 20 PHÒNG -->
+        <div class="corner-brackets" style="background: var(--surface); border: 1px solid var(--border); padding: 18px; margin-bottom: 24px;">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+            <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700;">[ SƠ ĐỒ MẶT BẰNG 20 PHÒNG TRỌ ]</span>
+            <div style="display: flex; gap: 12px; font-family: var(--font-mono); font-size: 11px;">
+              <span style="color: var(--accent-green);">● CÒN TRỐNG ({{ stats.available_rooms }})</span>
+              <span style="color: #ff5a5f;">● ĐÃ THUÊ ({{ stats.rented_rooms }})</span>
+            </div>
+          </div>
+
+          <div class="rooms-grid">
+            {% for room in rooms %}
+            <div class="room-card {% if room.status == 'Occupied' or room.tenant_name %}occupied{% else %}available{% endif %}">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="room-card-number">P.{{ room.room_number }}</span>
+                {% if room.status == 'Occupied' or room.tenant_name %}
+                  <span class="status-badge badge-occupied" style="font-size: 9px; padding: 1px 4px;">THUÊ</span>
+                {% else %}
+                  <span class="status-badge badge-available" style="font-size: 9px; padding: 1px 4px;">TRỐNG</span>
+                {% endif %}
+              </div>
+              <div class="room-card-type">{{ room.room_type }}</div>
+              <div class="room-card-price">{{ "{:,.0f}".format(room.base_price or 0) }} đ</div>
+              <div style="font-size: 11px; color: var(--dim-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ room.tenant_name or '—' }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="table-container">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+          <div class="table-header-bar">
+            <span class="mono-bold">BẢNG DỮ LIỆU PHÒNG TRỌ</span>
+            <span class="mono-cell" style="color: var(--dim-text);">TỔNG CỘNG: {{ rooms|length }} PHÒNG</span>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">STT</th>
+                <th>SỐ PHÒNG</th>
+                <th>LOẠI PHÒNG</th>
+                <th>KHU TRỌ</th>
+                <th>GIÁ CƠ BẢN</th>
+                <th>TRẠNG THÁI</th>
+                <th>KHÁCH ĐANG THUÊ</th>
+                <th>SỐ ĐIỆN THOẠI</th>
+                <th style="text-align: center;">HÀNH ĐỘNG</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for room in rooms %}
+              <tr>
+                <td class="mono-cell" style="color: var(--dim-text);">{{ "%02d" % loop.index }}</td>
+                <td><span class="badge-room-tag">P.{{ room.room_number }}</span></td>
+                <td>{{ room.room_type }}</td>
+                <td class="mono-cell">{{ room.property_name or 'Khu Trọ Chính' }}</td>
+                <td class="mono-bold">{{ "{:,.0f}".format(room.base_price or 0) }} đ</td>
+                <td>
+                  {% if room.status == 'Occupied' or room.tenant_name %}
+                    <span class="status-badge badge-occupied">● ĐÃ THUÊ</span>
+                  {% else %}
+                    <span class="status-badge badge-available">○ CÒN TRỐNG</span>
+                  {% endif %}
+                </td>
+                <td><strong>{{ room.tenant_name or '—' }}</strong></td>
+                <td class="mono-cell">{{ room.tenant_phone or '—' }}</td>
+                <td style="text-align: center;">
+                  {% if room.status == 'Occupied' or room.tenant_name %}
+                    <!-- Nút Xuất Hoá Đơn màu xanh dẫn tới template invoice.html -->
+                    <a href="/admin/invoice/{{ room.id }}" target="_blank" class="btn-invoice" title="Mở trang xem và in hóa đơn tiền phòng">
+                      <span>🖨️ Xuất Hoá Đơn</span>
+                    </a>
+                  {% else %}
+                    <span class="mono-cell" style="color: var(--faint-text);">Chưa có khách</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="9" style="text-align: center; padding: 25px;">Chưa có dữ liệu phòng.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           TAB 3: QUẢN LÝ KHÁCH THUÊ (BẢNG KHÁCH + XẾP PHÒNG + XOÁ KHÁCH)
+           ====================================================================== -->
+      <section id="tab-tenants" class="dashboard-tab-pane">
+        <h2 class="section-title">QUẢN LÝ DANH SÁCH KHÁCH THUÊ</h2>
+
+        <div class="table-container">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+          <div class="table-header-bar">
+            <span class="mono-bold">BẢNG DỮ LIỆU CƯ DÂN (USERS)</span>
+            <span class="mono-cell" style="color: var(--dim-text);">TỔNG CỘNG: {{ tenants|length }} CƯ DÂN</span>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">STT</th>
+                <th>HỌ VÀ TÊN</th>
+                <th>TÊN ĐĂNG NHẬP</th>
+                <th>SỐ ĐIỆN THOẠI</th>
+                <th>PHÒNG ĐANG Ở</th>
+                <th>GIÁ THUÊ</th>
+                <th>NGÀY THAM GIA</th>
+                <th style="text-align: center;">HÀNH ĐỘNG</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tenant in tenants %}
+              <tr id="tenant-row-{{ tenant.id }}">
+                <td class="mono-cell" style="color: var(--dim-text);">{{ "%02d" % loop.index }}</td>
+                <td><strong>{{ tenant.full_name }}</strong></td>
+                <td class="mono-cell" style="color: var(--dim-text);">@{{ tenant.username }}</td>
+                <td class="mono-cell">{{ tenant.phone or '—' }}</td>
+                <td>
+                  {% if tenant.room_number %}
+                    <span class="badge-room-tag">P.{{ tenant.room_number }}</span>
+                  {% else %}
+                    <span class="badge-unassigned">⏳ CHƯA XẾP PHÒNG</span>
+                  {% endif %}
+                </td>
+                <td class="mono-bold">
+                  {% if tenant.monthly_rent %}
+                    {{ "{:,.0f}".format(tenant.monthly_rent) }} đ
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+                <td class="mono-cell">{{ tenant.created_at[:10] if tenant.created_at else '—' }}</td>
+                <td style="text-align: center;">
+                  <div class="btn-action-group" style="justify-content: center;">
+                    {% if not tenant.room_number %}
+                      <!-- Nút Xếp Phòng mở Modal chọn phòng trống -->
+                      <button type="button" class="btn-assign" onclick="openAssignModal({{ tenant.id }}, '{{ tenant.full_name|replace("'", "\\'") }}')">
+                        <span>🔑 Xếp Phòng</span>
+                      </button>
+                    {% endif %}
+                    
+                    <!-- Nút Xóa Khách Thuê -->
+                    <button type="button" class="btn-delete" onclick="handleDeleteTenant({{ tenant.id }}, '{{ tenant.full_name|replace("'", "\\'") }}')">
+                      <span>✕ Xoá</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="8" style="text-align: center; padding: 25px;">Chưa có khách thuê nào.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           TAB 4: QUẢN LÝ TÀI CHÍNH & HÓA ĐƠN
+           ====================================================================== -->
+      <section id="tab-invoices" class="dashboard-tab-pane">
+        <h2 class="section-title">DANH SÁCH TÀI CHÍNH & HÓA ĐƠN TIỀN PHÒNG</h2>
+
+        <div class="table-container">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+          <div class="table-header-bar">
+            <span class="mono-bold">BẢNG DỮ LIỆU HÓA ĐƠN (INVOICES)</span>
+            <span class="mono-cell" style="color: var(--dim-text);">TỔNG SỐ: {{ invoices|length }} BẢN GHI</span>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">STT</th>
+                <th>MÃ HÓA ĐƠN</th>
+                <th>PHÒNG</th>
+                <th>KHÁCH THUÊ</th>
+                <th>SỐ ĐIỆN THOẠI</th>
+                <th>KỲ THU</th>
+                <th>TỔNG TIỀN</th>
+                <th>HẠN NỘP</th>
+                <th>TRẠNG THÁI</th>
+                <th style="text-align: center;">CHI TIẾT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inv in invoices %}
+              <tr>
+                <td class="mono-cell" style="color: var(--dim-text);">{{ "%02d" % loop.index }}</td>
+                <td class="mono-bold">INV-{{ inv.id }}</td>
+                <td><span class="badge-room-tag">P.{{ inv.room_number }}</span></td>
+                <td><strong>{{ inv.tenant_name }}</strong></td>
+                <td class="mono-cell">{{ inv.tenant_phone or '—' }}</td>
+                <td class="mono-cell">{{ inv.billing_month or inv.invoice_month }}</td>
+                <td class="mono-bold" style="font-size: 13.5px;">{{ "{:,.0f}".format(inv.total_amount or 0) }} đ</td>
+                <td class="mono-cell" style="color: var(--dim-text);">{{ inv.due_date or '—' }}</td>
+                <td>
+                  {% if inv.status == 'đã thanh toán' or inv.status == 'Paid' %}
+                    <span class="status-badge badge-available">● ĐÃ THANH TOÁN</span>
+                  {% else %}
+                    <span class="status-badge badge-occupied">○ CHƯA THANH TOÁN</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: center;">
+                  <a href="/admin/invoice/{{ inv.room_id }}" target="_blank" class="btn-invoice">
+                    <span>🖨️ Xem / In</span>
+                  </a>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="10" style="text-align: center; padding: 25px;">Chưa có bản ghi hóa đơn nào trong hệ thống.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           TAB 5: BẢNG TIN & THÔNG BÁO TỚI CƯ DÂN
+           ====================================================================== -->
+      <section id="tab-notifications" class="dashboard-tab-pane">
+        <h2 class="section-title">BẢNG TIN & THÔNG BÁO TỚI KHÁCH THUÊ</h2>
+
+        <!-- FORM PHÁT THÔNG BÁO -->
+        <div class="corner-brackets" style="background: var(--surface); border: 1px solid var(--border); padding: 20px; margin-bottom: 24px;">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+          <form id="formCreateNotif" onsubmit="handleCreateNotification(event)">
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label class="form-label" for="notifRecipient">ĐỐI TƯỢNG NHẬN THÔNG BÁO</label>
+              <select id="notifRecipient" class="form-control" style="font-weight: 600;">
+                <option value="">📢 Gửi cho tất cả cư dân (Thông báo chung)</option>
+                {% for t in tenants %}
+                  <option value="{{ t.id }}">👤 Gửi riêng: {{ t.full_name }} {% if t.room_number %}(P.{{ t.room_number }}){% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="notifMessage">SOẠN NỘI DUNG THÔNG BÁO</label>
+              <textarea id="notifMessage" class="form-control" rows="3" placeholder="Ví dụ: Nhắc nhở đóng tiền trọ trước ngày 5; Thông báo lịch bảo trì hệ thống bồn nước tầng 2..." required></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn-primary" id="btnSubmitNotif">
+                <span>📢 PHÁT THÔNG BÁO NGAY</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- BẢNG LỊCH SỬ THÔNG BÁO -->
+        <div class="table-container">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+          <div class="table-header-bar">
+            <span class="mono-bold">DANH SÁCH THÔNG BÁO ĐÃ PHÁT</span>
+            <span class="mono-cell" style="color: var(--dim-text);">TỔNG SỐ: {{ notifications|length }} BẢN TIN</span>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">STT</th>
+                <th>ĐỐI TƯỢNG NHẬN</th>
+                <th>NỘI DUNG BẢN TIN / THÔNG BÁO</th>
+                <th>THỜI GIAN ĐĂNG</th>
+                <th style="text-align: center; width: 100px;">HÀNH ĐỘNG</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for notif in notifications %}
+              <tr id="notif-row-{{ notif.id }}">
+                <td class="mono-cell" style="color: var(--dim-text);">{{ "%02d" % loop.index }}</td>
+                <td>
+                  {% if notif.recipient_id %}
+                    <span class="status-badge" style="color: var(--accent-blue); border-color: var(--accent-blue); background: rgba(21, 101, 192, 0.08);">
+                      👤 Riêng: {{ notif.recipient_name or 'Khách thuê' }}
+                    </span>
+                  {% else %}
+                    <span class="status-badge" style="color: var(--dim-text); border-color: var(--border); background: rgba(20,20,20,0.04);">
+                      📢 Tất cả cư dân
+                    </span>
+                  {% endif %}
+                </td>
+                <td style="max-width: 420px; line-height: 1.5;">{{ notif.message }}</td>
+                <td class="mono-cell" style="color: var(--dim-text);">{{ notif.created_at[:16] if notif.created_at else '—' }}</td>
+                <td style="text-align: center;">
+                  <button type="button" class="btn-delete" onclick="handleDeleteNotification({{ notif.id }})">
+                    <span>✕ Xoá</span>
+                  </button>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" style="text-align: center; padding: 25px;">Chưa có thông báo nào được đăng.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           TAB 6: QUẢN LÝ PHẢN HỒI / SỰ CỐ TỪ KHÁCH THUÊ
+           ====================================================================== -->
+      <section id="tab-feedbacks" class="dashboard-tab-pane">
+        <h2 class="section-title">DANH SÁCH BÁO CÁO SỰ CỐ & PHẢN HỒI KỸ THUẬT</h2>
+
+        <div class="table-container">
+          <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+          <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+          <div class="table-header-bar">
+            <span class="mono-bold">BẢNG DỮ LIỆU SỰ CỐ (FEEDBACKS & BẢO TRÌ)</span>
+            <span class="mono-cell" style="color: var(--dim-text);">TỔNG CỘNG: {{ feedbacks|length }} BÁO CÁO ({{ pending_feedbacks_count }} ĐANG CHỜ XỬ LÝ)</span>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">STT</th>
+                <th>TÊN KHÁCH</th>
+                <th>SỐ ĐIỆN THOẠI</th>
+                <th>PHÒNG</th>
+                <th>NỘI DUNG LỖI / SỰ CỐ</th>
+                <th>THỜI GIAN GỬI</th>
+                <th>TRẠNG THÁI</th>
+                <th style="text-align: center;">HÀNH ĐỘNG</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in feedbacks %}
+              <tr id="feedback-row-{{ row.id }}">
+                <td class="mono-cell" style="color: var(--dim-text);">{{ "%02d" % loop.index }}</td>
+                <td><strong>{{ row.tenant_name or 'Khách Thuê' }}</strong></td>
+                <td class="mono-cell">{{ row.tenant_phone or '—' }}</td>
+                <td>
+                  {% if row.room_number %}
+                    <span class="badge-room-tag">P.{{ row.room_number }}</span>
+                  {% else %}
+                    <span class="mono-cell" style="color: var(--faint-text);">—</span>
+                  {% endif %}
+                </td>
+                <td style="max-width: 320px; line-height: 1.4;">{{ row.issue_content }}</td>
+                <td class="mono-cell" style="color: var(--dim-text);">{{ row.created_at[:16] if row.created_at else '—' }}</td>
+                <td>
+                  {% if row.status == 'done' %}
+                    <span class="status-badge badge-available" id="badge-fb-{{ row.id }}">● ĐÃ HOÀN THÀNH</span>
+                  {% else %}
+                    <span class="status-badge badge-occupied" id="badge-fb-{{ row.id }}">○ CHƯA XỬ LÝ</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: center;">
+                  {% if row.status == 'done' %}
+                    <span class="mono-cell" style="color: var(--accent-green); font-weight: 600;">✓ Đã Xong</span>
+                  {% else %}
+                    <button type="button" class="btn-assign" id="btn-resolve-{{ row.id }}" onclick="handleResolveFeedback({{ row.id }})">
+                      <span>✓ Xác nhận Đã Xử Lý</span>
+                    </button>
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="8" style="text-align: center; padding: 25px;">Chưa có phản ánh sự cố nào từ khách thuê.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       POPUP MODAL: XẾP PHÒNG CHO KHÁCH THUÊ
+       ========================================================================== -->
+  <div id="assignRoomModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card corner-brackets">
+      <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+      <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+      <div class="modal-header">
+        <span class="modal-badge">[ XẾP PHÒNG CHO KHÁCH THUÊ ]</span>
+        <button type="button" class="modal-close" onclick="closeAssignModal()">✕</button>
+      </div>
+
+      <form id="formAssignRoom" onsubmit="handleAssignRoom(event)">
+        <input type="hidden" id="assignTenantId" name="tenant_id">
+
+        <div class="form-group">
+          <label class="form-label">KHÁCH THUÊ NHẬN PHÒNG</label>
+          <input type="text" id="assignTenantName" class="form-control" readonly style="background: rgba(20, 20, 20, 0.05); font-weight: 700;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">CHỌN PHÒNG ĐANG CÒN TRỐNG</label>
+          <select id="assignRoomSelect" name="room_id" class="form-control" required>
+            <option value="">-- Chọn một phòng trống --</option>
+            {% for av in available_rooms_list %}
+              <option value="{{ av.id }}">Phòng P.{{ av.room_number }} ({{ av.room_type }}) - {{ "{:,.0f}".format(av.base_price or 0) }} đ/tháng</option>
+            {% endfor %}
+          </select>
+          {% if not available_rooms_list %}
+            <small style="color: var(--accent-red); font-size: 11px; margin-top: 4px; display: block;">
+              ⚠️ Hiện tại không còn phòng nào trống trong hệ thống!
+            </small>
+          {% endif %}
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeAssignModal()">HỦY BỎ</button>
+          <button type="submit" class="btn-primary" {% if not available_rooms_list %}disabled{% endif %}>
+            ✓ XÁC NHẬN XẾP PHÒNG
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT XỬ LÝ CHUYỂN TAB & GỌI API CRUD
+       ========================================================================== -->
+  <script>
+    // 1. Chuyển đổi giữa các Tab riêng biệt
+    function switchDashboardTab(tabId, btnElement) {
+      // Ẩn tất cả tab pane
+      document.querySelectorAll('.dashboard-tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+      });
+      // Hiện tab được chọn
+      const targetPane = document.getElementById(tabId);
+      if (targetPane) targetPane.classList.add('active');
+
+      // Cập nhật trạng thái active trên Sidebar
+      document.querySelectorAll('.sidebar-menu .menu-item').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      if (btnElement) {
+        btnElement.classList.add('active');
+      } else if (typeof event !== 'undefined' && event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+      }
+
+      // Cập nhật Breadcrumb tiêu đề
+      const titles = {
+        'tab-overview': 'TỔNG QUAN',
+        'tab-rooms': 'SƠ ĐỒ & QUẢN LÝ PHÒNG',
+        'tab-tenants': 'QUẢN LÝ CƯ DÂN',
+        'tab-invoices': 'QUẢN LÝ TÀI CHÍNH & HÓA ĐƠN',
+        'tab-notifications': 'BẢNG TIN & THÔNG BÁO CƯ DÂN',
+        'tab-feedbacks': 'QUẢN LÝ PHẢN HỒI & SỰ CỐ'
+      };
+      const breadcrumb = document.getElementById('current-tab-title');
+      if (breadcrumb && titles[tabId]) breadcrumb.textContent = titles[tabId];
+    }
+
+    // 2. Mở / Đóng Modal Xếp Phòng
+    function openAssignModal(tenantId, tenantName) {
+      document.getElementById('assignTenantId').value = tenantId;
+      document.getElementById('assignTenantName').value = tenantName;
+      const modal = document.getElementById('assignRoomModal');
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAssignModal() {
+      const modal = document.getElementById('assignRoomModal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    // Đóng khi click ra ngoài backdrop hoặc ấn ESC
+    document.getElementById('assignRoomModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeAssignModal();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAssignModal();
+    });
+
+    // 3. Xử lý Gửi Form Xếp Phòng (API POST /admin/assign_room)
+    async function handleAssignRoom(e) {
+      e.preventDefault();
+      const tenantId = document.getElementById('assignTenantId').value;
+      const roomId = document.getElementById('assignRoomSelect').value;
+
+      if (!roomId) {
+        alert("Vui lòng chọn phòng trống!");
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/assign_room', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenant_id: tenantId, room_id: roomId })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert("✓ " + data.message);
+          window.location.reload();
+        } else {
+          alert("❌ Thất bại: " + data.message);
+        }
+      } catch (err) {
+        console.error("Lỗi khi xếp phòng:", err);
+        alert("❌ Lỗi kết nối máy chủ khi xếp phòng!");
+      }
+    }
+
+    // 4. Xử lý Xóa Khách Thuê (API POST /admin/delete_tenant/<id>)
+    async function handleDeleteTenant(tenantId, tenantName) {
+      const confirmDelete = confirm(`⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA KHÁCH THUÊ [${tenantName}] KHÔNG?\n\nNếu khách đang ở một phòng, phòng đó sẽ tự động được giải phóng thành 'CÒN TRỐNG'.`);
+      if (!confirmDelete) return;
+
+      try {
+        const res = await fetch(`/admin/delete_tenant/${tenantId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert("✓ " + data.message);
+          window.location.reload();
+        } else {
+          alert("❌ Không thể xóa: " + data.message);
+        }
+      } catch (err) {
+        console.error("Lỗi khi xóa khách thuê:", err);
+        alert("❌ Lỗi kết nối máy chủ khi xóa khách thuê!");
+      }
+    }
+
+    // 5. Xử lý Giải quyết sự cố / Báo cáo phản hồi (API POST /admin/resolve_feedback/<id>)
+    async function handleResolveFeedback(feedbackId) {
+      if (!confirm(`Xác nhận đánh dấu báo cáo sự cố #${feedbackId} đã được xử lý xong?`)) return;
+
+      try {
+        const res = await fetch(`/admin/resolve_feedback/${feedbackId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert("✓ " + data.message);
+          // Cập nhật trạng thái badge và nút hành động trên UI mà không cần tải lại trang
+          const badge = document.getElementById(`badge-fb-${feedbackId}`);
+          if (badge) {
+            badge.className = 'status-badge badge-available';
+            badge.textContent = '● ĐÃ HOÀN THÀNH';
+          }
+          const btn = document.getElementById(`btn-resolve-${feedbackId}`);
+          if (btn) {
+            const parent = btn.parentElement;
+            parent.innerHTML = '<span class="mono-cell" style="color: var(--accent-green); font-weight: 600;">✓ Đã Xong</span>';
+          }
+          // Giảm số lượng badge sự cố trên menu sidebar nếu có
+          const sideBadge = document.getElementById('menu-feedback-badge');
+          if (sideBadge) {
+            let current = parseInt(sideBadge.textContent) || 0;
+            if (current > 0) {
+              sideBadge.textContent = current - 1;
+              if (current - 1 === 0) sideBadge.style.background = 'transparent';
+            }
+          }
+        } else {
+          alert("❌ " + data.message);
+        }
+      } catch (err) {
+        console.error("Lỗi khi giải quyết sự cố:", err);
+        alert("❌ Lỗi kết nối máy chủ khi cập nhật trạng thái sự cố!");
+      }
+    }
+
+    // 6. Xử lý Phát Thông Báo Mới (API POST /admin/create_notification)
+    async function handleCreateNotification(e) {
+      e.preventDefault();
+      const message = document.getElementById('notifMessage').value.trim();
+      const recipientId = document.getElementById('notifRecipient')?.value || null;
+      const btn = document.getElementById('btnSubmitNotif');
+      if (!message) return alert("Vui lòng nhập nội dung thông báo!");
+
+      btn.disabled = true;
+      btn.textContent = "Đang đăng thông báo...";
+
+      try {
+        const res = await fetch('/admin/create_notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: message, recipient_id: recipientId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✓ " + data.message);
+          window.location.reload();
+        } else {
+          alert("❌ " + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Lỗi kết nối khi đăng thông báo!");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📢 PHÁT THÔNG BÁO NGAY</span>';
+      }
+    }
+
+    // 7. Xử lý Xóa Thông Báo (API POST /admin/delete_notification/<id>)
+    async function handleDeleteNotification(notifId) {
+      if (!confirm("Xác nhận xóa bản tin thông báo này?")) return;
+      try {
+        const res = await fetch(`/admin/delete_notification/${notifId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✓ " + data.message);
+          const row = document.getElementById(`notif-row-${notifId}`);
+          if (row) row.remove();
+        } else {
+          alert("❌ " + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Lỗi kết nối khi xóa thông báo!");
+      }
+    }
+  </script>
+</body>
+</html>

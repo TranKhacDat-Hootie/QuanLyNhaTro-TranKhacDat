@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DB Live Inspector - Live SQL & Trigger Stream Console</title>
+  
+  <!-- Google Fonts: IBM Plex Mono & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #070b13;
+      --panel-bg: #0d1322;
+      --card-bg: #131b2e;
+      --card-inner: #19243c;
+      --border: #1e293b;
+      --border-glow: rgba(56, 189, 248, 0.25);
+      --text: #f1f5f9;
+      --dim-text: #94a3b8;
+      --faint-text: #64748b;
+      --cyan: #38bdf8;
+      --blue: #3b82f6;
+      --indigo: #6366f1;
+      --purple: #a855f7;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'Fira Code', 'IBM Plex Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* --------------------------------------------------------------------------
+       TOP NAVBAR
+       -------------------------------------------------------------------------- */
+    .top-navbar {
+      background: #090e1a;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-sub {
+      font-size: 11.5px;
+      color: var(--dim-text);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    .nav-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tool-chip {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--border);
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-nav {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-nav:hover {
+      background: rgba(51, 65, 85, 0.8);
+      border-color: #475569;
+    }
+
+    .btn-nav-accent {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      border: 1px solid #f43f5e;
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(225, 29, 72, 0.3);
+    }
+    .btn-nav-accent:hover {
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+    }
+
+    /* --------------------------------------------------------------------------
+       SUB TICKER / STATUS MARQUEE
+       -------------------------------------------------------------------------- */
+    .live-marquee {
+      background: #090f1d;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* --------------------------------------------------------------------------
+       MAIN WORKSPACE (SPLIT LAYOUT)
+       -------------------------------------------------------------------------- */
+    .main-workspace {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      padding: 16px 24px;
+      min-height: calc(100vh - 85px);
+    }
+
+    @media (max-width: 1200px) {
+      .main-workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-box {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .panel-header {
+      background: rgba(15, 23, 42, 0.8);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-4a {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+
+    .badge-4b {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #f8fafc;
+    }
+
+    .panel-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .select-sm {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      padding: 5px 10px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-sm {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .btn-sm:hover {
+      background: var(--card-inner);
+      border-color: #475569;
+    }
+
+    /* --------------------------------------------------------------------------
+       PANEL 4A: TABLE NAVIGATION CHIPS & SCHEMA INFO
+       -------------------------------------------------------------------------- */
+    .table-chips-bar {
+      padding: 12px 16px;
+      background: #090e1b;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .table-chip {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .table-chip:hover {
+      border-color: #38bdf8;
+      color: #ffffff;
+      background: #19243c;
+    }
+
+    .table-chip.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+      font-weight: 600;
+    }
+
+    .table-chip.chip-view {
+      border-style: dashed;
+      color: #c084fc;
+    }
+    .table-chip.chip-view.active {
+      background: #7e22ce;
+      border-color: #c084fc;
+      color: #ffffff;
+    }
+
+    .chip-count {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .schema-info-bar {
+      padding: 9px 16px;
+      background: rgba(15, 23, 42, 0.4);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .caesar-active-tag {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* --------------------------------------------------------------------------
+       INTERACTIVE SQL RUNNER (INPUT BOX)
+       -------------------------------------------------------------------------- */
+    .sql-runner-box {
+      padding: 12px 16px;
+      background: #0b1120;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sql-input-wrapper {
+      position: relative;
+    }
+
+    .sql-textarea {
+      width: 100%;
+      background: #060a14;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      padding: 10px 14px;
+      resize: vertical;
+      min-height: 64px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .sql-textarea:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+
+    .sql-actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sql-presets {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-preset {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--border);
+      color: #94a3b8;
+      font-size: 10.5px;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-preset:hover {
+      color: #38bdf8;
+      border-color: #38bdf8;
+    }
+
+    .btn-run-sql {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: 1px solid #38bdf8;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+      transition: all 0.15s;
+    }
+
+    .btn-run-sql:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+    }
+
+    /* --------------------------------------------------------------------------
+       PANEL 4A: DATA TABLE
+       -------------------------------------------------------------------------- */
+    .table-container {
+      flex: 1;
+      overflow: auto;
+      max-height: 480px;
+    }
+
+    .inspector-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .inspector-table th {
+      background: #090e1c;
+      color: #38bdf8;
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid rgba(30, 41, 59, 0.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .inspector-table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+      border-right: 1px solid rgba(30, 41, 59, 0.3);
+      color: #cbd5e1;
+    }
+
+    .inspector-table tr:hover td {
+      background: rgba(30, 41, 59, 0.4);
+    }
+
+    .caesar-cell {
+      background: rgba(245, 158, 11, 0.08) !important;
+      border: 1px dashed rgba(245, 158, 11, 0.4) !important;
+      color: #f59e0b !important;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: help;
+    }
+
+    .null-val {
+      color: #64748b;
+      font-style: italic;
+    }
+
+    .panel-footer-bar {
+      padding: 8px 16px;
+      background: #090e1b;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* --------------------------------------------------------------------------
+       PANEL 4B: LIVE SQL & TRIGGER STREAM CONSOLE (TERMINAL VIEW)
+       -------------------------------------------------------------------------- */
+    .stream-terminal-bar {
+      background: #070a12;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .stream-container {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      max-height: 620px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #080c16;
+    }
+
+    /* SQL TELEMETRY CARD */
+    .telemetry-card {
+      background: #0e1526;
+      border: 1px solid #1e293b;
+      border-left: 3px solid #38bdf8;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      position: relative;
+      transition: all 0.2s ease;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .telemetry-card:hover {
+      border-color: #38bdf8;
+      background: #111a30;
+    }
+
+    .telemetry-card.card-insert {
+      border-left-color: #10b981;
+    }
+    .telemetry-card.card-update {
+      border-left-color: #f59e0b;
+    }
+    .telemetry-card.card-delete {
+      border-left-color: #ef4444;
+    }
+    .telemetry-card.card-trigger {
+      border-left-color: #c084fc;
+      background: rgba(192, 132, 252, 0.05);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .op-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .op-select { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .op-insert { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .op-update { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .op-delete { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .op-trigger { background: rgba(192, 132, 252, 0.15); color: #c084fc; }
+
+    .card-time {
+      font-size: 10.5px;
+      color: #64748b;
+    }
+
+    .card-sql {
+      color: #38bdf8;
+      word-break: break-all;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .card-params {
+      font-size: 10.5px;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .card-footer {
+      font-size: 10.5px;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px dashed rgba(30, 41, 59, 0.6);
+      padding-top: 6px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== TOP NAVIGATION BAR ==================== -->
+  <header class="top-navbar">
+    <div class="brand-section">
+      <div class="brand-logo-icon">🔍</div>
+      <div class="brand-text">
+        <h1>
+          <span>DB Live Inspector</span>
+          <span class="brand-pill">Dành cho Giảng viên • RentMaster</span>
+        </h1>
+        <div class="brand-sub">Kiểm định Thiết kế CSDL Chuẩn 3NF • Connection Pool Động • Audit Triggers • Live SQL Stream</div>
+      </div>
+    </div>
+
+    <div class="nav-tools">
+      <div class="tool-chip" id="dbStatusChip">
+        <span>🗄️ SQLite 3.45 • database.db • WAL Mode</span>
+      </div>
+      <button type="button" class="btn-nav" onclick="refreshCurrentTable()">
+        <span>🔄 Đồng bộ lại</span>
+      </button>
+      <button type="button" class="btn-nav" onclick="toggleSplitScreen()">
+        <span>⚖️ Chia đôi Màn hình</span>
+      </button>
+      <a href="/admin/dashboard" class="btn-nav btn-nav-accent">
+        <span>🚪 Về Trang Quản Trị ↗</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== LIVE MARQUEE / STATUS BAR ==================== -->
+  <div class="live-marquee">
+    <div class="live-dot"></div>
+    <div>
+      <strong>🔥 [LIVE TELEMETRY STREAM ACTIVE]</strong> Toàn bộ câu lệnh SQL và Trigger đang được giám sát thời gian thực. Mọi dữ liệu tài khoản và mật khẩu người dùng (Users) được <strong>tự động mã hóa mật mã Caesar (Shift +3)</strong> khi truy vấn.
+    </div>
+  </div>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <main class="main-workspace" id="mainWorkspace">
+
+    <!-- ======================================================================
+         PANEL 4A: TRÌNH SOI BẢNG CHUẨN 3NF & VIEW TRỰC TIẾP
+         ====================================================================== -->
+    <section class="panel-box">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="panel-badge badge-4a">PANEL 4A</span>
+          <h2 class="panel-title">Trình Soi Bảng Chuẩn 3NF & View Trực tiếp</h2>
+        </div>
+        <div class="panel-controls">
+          <select id="selectRowLimit" class="select-sm" onchange="changeRowLimit(this.value)">
+            <option value="10">10 dòng</option>
+            <option value="25">25 dòng</option>
+            <option value="50" selected>50 dòng</option>
+            <option value="100">100 dòng</option>
+          </select>
+          <button type="button" class="btn-sm" onclick="refreshCurrentTable()">
+            <span>🔄 Tải lại bảng</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- DANH SÁCH BẢNG & VIEW CHIPS -->
+      <div class="table-chips-bar" id="tablesListContainer">
+        <!-- Render động từ API /api/inspector/tables -->
+        <span style="color: var(--dim-text); font-family: var(--font-mono); font-size: 11px;">Đang tải danh sách bảng...</span>
+      </div>
+
+      <!-- SCHEMA VÀ THÔNG TIN MÃ HÓA CAESAR -->
+      <div class="schema-info-bar">
+        <span id="schemaNotesText">PK: id • Chuẩn 3NF nghiêm ngặt • Kiểm soát toàn vẹn khóa ngoại (FK)</span>
+        <span class="caesar-active-tag">
+          <span>🔒 Mật mã Caesar (Shift +3) Kích Hoạt</span>
+        </span>
+      </div>
+
+      <!-- KHỐI NHẬP VÀ THỰC THI SQL TRỰC TIẾP -->
+      <div class="sql-runner-box">
+        <div class="sql-input-wrapper">
+          <textarea id="sqlQueryInput" class="sql-textarea" placeholder="Nhập câu lệnh SQL tùy ý tại đây (ví dụ: SELECT * FROM Users; hoặc UPDATE Rooms SET status='Available' WHERE id=1;)" rows="2">SELECT * FROM Users;</textarea>
+        </div>
+        <div class="sql-actions-bar">
+          <div class="sql-presets">
+            <span style="font-size: 10.5px; color: var(--faint-text); font-family: var(--font-mono); align-self: center;">Mẫu:</span>
+            <button type="button" class="btn-preset" onclick="setQuery('SELECT id, username, password_hash, full_name, phone, role FROM Users;')">🔑 Users & Mật khẩu Caesar</button>
+            <button type="button" class="btn-preset" onclick="setQuery('SELECT * FROM Rooms WHERE status = \'Available\';')">🏠 Phòng trống</button>
+            <button type="button" class="btn-preset" onclick="setQuery('SELECT * FROM Invoices WHERE status = \'chưa thanh toán\';')">💰 Hóa đơn nợ</button>
+            <button type="button" class="btn-preset" onclick="setQuery('SELECT * FROM vw_occupied_rooms;')">📊 View Phòng Thuê</button>
+            <button type="button" class="btn-preset" onclick="setQuery('SELECT * FROM vw_monthly_revenue;')">📈 View Doanh Thu</button>
+          </div>
+          <button type="button" class="btn-run-sql" onclick="executeCustomSql()">
+            <span>▶ THỰC THI SQL (Ctrl + Enter)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- BẢNG DỮ LIỆU THỰC TẾ -->
+      <div class="table-container">
+        <table class="inspector-table" id="dataTable">
+          <thead id="dataThead">
+            <tr><th>Đang nạp dữ liệu...</th></tr>
+          </thead>
+          <tbody id="dataTbody">
+            <tr><td>Vui lòng chọn bảng hoặc thực thi câu lệnh SQL để xem dữ liệu.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel-footer-bar">
+        <span id="recordCountInfo">Hiển thị 0 / 0 bản ghi</span>
+        <span id="queryDurationInfo" style="color: var(--cyan);">Thời gian thực thi: 0.00ms</span>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PANEL 4B: LIVE SQL & TRIGGER STREAM CONSOLE
+         ====================================================================== -->
+    <section class="panel-box">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="panel-badge badge-4b">PANEL 4B</span>
+          <h2 class="panel-title">Live SQL & Trigger Stream Console</h2>
+        </div>
+        <div class="panel-controls">
+          <select id="selectStreamFilter" class="select-sm" onchange="filterStream(this.value)">
+            <option value="ALL" selected>Tất cả Stream</option>
+            <option value="SELECT">SELECT</option>
+            <option value="INSERT">INSERT</option>
+            <option value="UPDATE">UPDATE</option>
+            <option value="DELETE">DELETE</option>
+            <option value="TRIGGER">TRIGGER</option>
+          </select>
+          <button type="button" class="btn-sm" id="btnTogglePause" onclick="togglePauseStream()">
+            <span>⏸ Tạm dừng</span>
+          </button>
+          <button type="button" class="btn-sm" onclick="clearTelemetry()">
+            <span>🗑 Xóa</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- THANH TERMINAL TITLE -->
+      <div class="stream-terminal-bar">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span style="margin-left: 8px;">sqlite-live-telemetry://database.db</span>
+        </div>
+        <div>
+          <span id="streamLogCounter" style="color: var(--cyan); font-weight: 600;">0 logs</span>
+        </div>
+      </div>
+
+      <!-- KHỐI DÒNG CHẢY LOG TELEMETRY -->
+      <div class="stream-container" id="streamContainer">
+        <!-- Render động từ API /api/inspector/telemetry -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       JAVASCRIPT XỬ LÝ INSPECTOR & REAL-TIME STREAMING
+       ========================================================================== -->
+  <script>
+    let currentTable = 'Users';
+    let rowLimit = 50;
+    let isPaused = false;
+    let pollInterval = null;
+    let currentFilter = 'ALL';
+    let allLogs = [];
+
+    // Khởi chạy khi tải trang
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTables();
+      loadTableData(currentTable);
+      fetchTelemetry();
+      
+      // Bắt đầu chu kỳ quét telemetry thời gian thực mỗi 2.5 giây
+      pollInterval = setInterval(() => {
+        if (!isPaused) fetchTelemetry();
+      }, 2500);
+
+      // Phím tắt Ctrl + Enter để thực thi câu lệnh SQL
+      document.getElementById('sqlQueryInput').addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          executeCustomSql();
+        }
+      });
+    });
+
+    // 1. Tải danh sách bảng và views
+    async function loadTables() {
+      try {
+        const res = await fetch('/api/inspector/tables');
+        const data = await res.json();
+        if (data.success) {
+          const container = document.getElementById('tablesListContainer');
+          container.innerHTML = data.data.map((t, idx) => {
+            const isView = (t.type === 'view');
+            const prefix = isView ? 'VIEW: ' : `${idx + 1}. `;
+            const cls = `table-chip ${isView ? 'chip-view' : ''} ${t.name === currentTable ? 'active' : ''}`;
+            return `
+              <div class="${cls}" onclick="switchTable('${t.name}')">
+                <span>${prefix}${t.name}</span>
+                <span class="chip-count">${t.count}</span>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error("Lỗi nạp bảng:", err);
+      }
+    }
+
+    // 2. Chuyển đổi bảng đang xem
+    function switchTable(tableName) {
+      currentTable = tableName;
+      document.querySelectorAll('.table-chip').forEach(el => {
+        el.classList.toggle('active', el.textContent.includes(tableName));
+      });
+      document.getElementById('sqlQueryInput').value = `SELECT * FROM ${tableName};`;
+      loadTableData(tableName);
+    }
+
+    // 3. Tải dữ liệu bảng từ Backend
+    async function loadTableData(tableName) {
+      try {
+        const res = await fetch(`/api/inspector/table/${tableName}?limit=${rowLimit}`);
+        const data = await res.json();
+        if (data.success) {
+          renderTable(data.columns, data.rows, data.caesar_encrypted, data.duration_ms);
+          document.getElementById('recordCountInfo').textContent = `Hiển thị ${data.rows.length} / ${data.total} bản ghi [Bảng: ${tableName}]`;
+          document.getElementById('queryDurationInfo').textContent = `Thời gian thực thi: ${data.duration_ms}ms`;
+        } else {
+          alert("Lỗi: " + data.message);
+        }
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu bảng:", err);
+      }
+    }
+
+    // 4. Render bảng HTML với highlight mật mã Caesar
+    function renderTable(columns, rows, hasCaesar, duration) {
+      const thead = document.getElementById('dataThead');
+      const tbody = document.getElementById('dataTbody');
+
+      if (!columns || columns.length === 0) {
+        thead.innerHTML = '<tr><th>Không có cột dữ liệu</th></tr>';
+        tbody.innerHTML = '<tr><td>Không có bản ghi nào để hiển thị.</td></tr>';
+        return;
+      }
+
+      // Header
+      thead.innerHTML = '<tr>' + columns.map(c => {
+        const isPwd = c.toLowerCase().includes('password') || c.toLowerCase().includes('pwd');
+        return `<th>${c} ${isPwd ? '<span style="color: #fbbf24; font-size: 10px;">[🔒 CAESAR +3]</span>' : ''}</th>`;
+      }).join('') + '</tr>';
+
+      // Rows
+      if (!rows || rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${columns.length}" style="text-align: center; color: var(--faint-text); padding: 24px;">Bảng chưa có bản ghi nào.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => {
+        return '<tr>' + columns.map(c => {
+          let val = r[c];
+          const isPwd = c.toLowerCase().includes('password') || c.toLowerCase().includes('pwd');
+
+          if (val === null || val === undefined) {
+            return '<td class="null-val">NULL</td>';
+          }
+          if (isPwd) {
+            return `
+              <td>
+                <span class="caesar-cell" title="Mật khẩu này đã được tự động mã hóa dưới dạng Mật mã Caesar (Shift +3) để bảo mật">
+                  🔒 ${escapeHtml(String(val))}
+                  <span style="font-size: 9px; opacity: 0.85;">(Caesar +3)</span>
+                </span>
+              </td>
+            `;
+          }
+          return `<td>${escapeHtml(String(val))}</td>`;
+        }).join('') + '</tr>';
+      }).join('');
+    }
+
+    // 5. Thực thi câu lệnh SQL tùy ý từ ô nhập liệu
+    async function executeCustomSql() {
+      const query = document.getElementById('sqlQueryInput').value.trim();
+      if (!query) return alert("Vui lòng nhập câu lệnh SQL!");
+
+      const btn = document.querySelector('.btn-run-sql');
+      btn.textContent = "⏳ Đang chạy...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/inspector/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (data.type === 'SELECT') {
+            renderTable(data.columns, data.rows, data.caesar_encrypted, data.duration_ms);
+            document.getElementById('recordCountInfo').textContent = `Thực thi SELECT: ${data.rows.length} bản ghi`;
+            document.getElementById('queryDurationInfo').textContent = `Thời gian thực thi: ${data.duration_ms}ms`;
+          } else {
+            alert(`✓ ${data.message} (${data.duration_ms}ms)`);
+            refreshCurrentTable();
+          }
+          fetchTelemetry(); // Cập nhật stream ngay
+        } else {
+          alert(`❌ Lỗi SQL: ${data.error} (${data.duration_ms}ms)`);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Lỗi kết nối tới máy chủ khi thực thi SQL!");
+      } finally {
+        btn.innerHTML = '<span>▶ THỰC THI SQL (Ctrl + Enter)</span>';
+        btn.disabled = false;
+      }
+    }
+
+    // 6. Tải danh sách Telemetry Stream (Panel 4B)
+    async function fetchTelemetry() {
+      try {
+        const res = await fetch('/api/inspector/telemetry');
+        const data = await res.json();
+        if (data.success) {
+          allLogs = data.logs || [];
+          document.getElementById('streamLogCounter').textContent = `${allLogs.length} logs`;
+          renderStreamCards();
+        }
+      } catch (err) {
+        console.error("Lỗi nạp telemetry:", err);
+      }
+    }
+
+    // 7. Render Stream Cards
+    function renderStreamCards() {
+      const container = document.getElementById('streamContainer');
+      let filtered = allLogs;
+      if (currentFilter !== 'ALL') {
+        filtered = allLogs.filter(l => l.op === currentFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #64748b; padding: 30px; font-family: var(--font-mono); font-size: 11.5px;">Chưa có log telemetry nào cho bộ lọc này.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        let opCls = 'op-select';
+        let cardCls = '';
+        if (item.op === 'INSERT') { opCls = 'op-insert'; cardCls = 'card-insert'; }
+        else if (item.op === 'UPDATE') { opCls = 'op-update'; cardCls = 'card-update'; }
+        else if (item.op === 'DELETE') { opCls = 'op-delete'; cardCls = 'card-delete'; }
+        else if (item.op === 'TRIGGER') { opCls = 'op-trigger'; cardCls = 'card-trigger'; }
+
+        return `
+          <div class="telemetry-card ${cardCls}">
+            <div class="card-top">
+              <span class="op-badge ${opCls}">${item.op} • ${item.duration_ms}ms</span>
+              <span class="card-time">${item.timestamp}</span>
+            </div>
+            <div class="card-sql">${escapeHtml(item.query)}</div>
+            ${item.params && item.params.length > 0 ? `<div class="card-params">params: ${escapeHtml(JSON.stringify(item.params))}</div>` : ''}
+            <div class="card-footer">
+              <span>source: ${escapeHtml(item.source)}</span>
+              <span>rows: ${item.rows}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 8. Các tiện ích điều khiển
+    function refreshCurrentTable() {
+      loadTables();
+      loadTableData(currentTable);
+      fetchTelemetry();
+    }
+
+    function changeRowLimit(val) {
+      rowLimit = parseInt(val);
+      loadTableData(currentTable);
+    }
+
+    function setQuery(sql) {
+      document.getElementById('sqlQueryInput').value = sql;
+      executeCustomSql();
+    }
+
+    function filterStream(filterVal) {
+      currentFilter = filterVal;
+      renderStreamCards();
+    }
+
+    function togglePauseStream() {
+      isPaused = !isPaused;
+      const btn = document.getElementById('btnTogglePause');
+      btn.innerHTML = isPaused ? '<span>▶ Tiếp tục</span>' : '<span>⏸ Tạm dừng</span>';
+      btn.style.color = isPaused ? '#f59e0b' : 'inherit';
+    }
+
+    async function clearTelemetry() {
+      if (!confirm("Xác nhận xóa toàn bộ log telemetry stream?")) return;
+      try {
+        await fetch('/api/inspector/clear_telemetry', { method: 'POST' });
+        allLogs = [];
+        document.getElementById('streamLogCounter').textContent = `0 logs`;
+        renderStreamCards();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function toggleSplitScreen() {
+      const ws = document.getElementById('mainWorkspace');
+      if (ws.style.gridTemplateColumns === '1fr') {
+        ws.style.gridTemplateColumns = '1.15fr 0.85fr';
+      } else {
+        ws.style.gridTemplateColumns = '1fr';
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
+

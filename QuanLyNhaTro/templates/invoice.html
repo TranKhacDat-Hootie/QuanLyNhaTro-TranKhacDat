@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hóa Đơn Tiền Nhà - Phòng {{ inv.room.room_number }} - RentMaster</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #efece6;
+      --paper: #ffffff;
+      --text: #141414;
+      --dim-text: #666666;
+      --border: #141414;
+      --grid-lines: rgba(20, 20, 20, 0.15);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'Schibsted Grotesk', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.5;
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* THANH CÔNG CỤ ĐIỀU KHIỂN (ẨN KHI IN) */
+    .action-bar {
+      width: 100%;
+      max-width: 780px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--text);
+      border: 1px solid var(--border);
+      color: var(--bg);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: opacity 0.2s;
+    }
+
+    .btn-print:hover {
+      opacity: 0.88;
+    }
+
+    .btn-send-invoice {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      background: #1565c0;
+      border: 1px solid #0d47a1;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+    }
+
+    .btn-send-invoice:hover {
+      opacity: 0.9;
+    }
+
+    .btn-send-invoice:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* TỜ GIẤY HÓA ĐƠN CHUẨN IN (A4 RATIO) */
+    .invoice-sheet {
+      width: 100%;
+      max-width: 780px;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      padding: 44px 48px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Góc kẻ kỹ thuật */
+    .cb {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-color: var(--border);
+      border-style: solid;
+    }
+
+    .cb-tl {
+      top: -4px;
+      left: -4px;
+      border-width: 1px 0 0 1px;
+    }
+
+    .cb-tr {
+      top: -4px;
+      right: -4px;
+      border-width: 1px 1px 0 0;
+    }
+
+    .cb-bl {
+      bottom: -4px;
+      left: -4px;
+      border-width: 0 0 1px 1px;
+    }
+
+    .cb-br {
+      bottom: -4px;
+      right: -4px;
+      border-width: 0 1px 1px 0;
+    }
+
+    /* HEADER */
+    .inv-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    .inv-brand-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #ff5a5f;
+    }
+
+    .inv-brand-title {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    .inv-brand-sub {
+      font-size: 12px;
+      color: var(--dim-text);
+      margin-top: 4px;
+    }
+
+    .inv-meta-box {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+
+    .inv-number {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .inv-meta-row {
+      color: var(--dim-text);
+      margin-top: 3px;
+    }
+
+    .inv-meta-row strong {
+      color: var(--text);
+    }
+
+    /* THÔNG TIN 2 BÊN */
+    .party-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px dashed var(--grid-lines);
+    }
+
+    .party-col-title {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim-text);
+      margin-bottom: 8px;
+    }
+
+    .party-name {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .party-info-item {
+      font-size: 12.5px;
+      color: var(--dim-text);
+      margin-top: 2px;
+    }
+
+    .room-highlight-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      margin-top: 6px;
+    }
+
+    /* BẢNG CHI TIẾT CHI PHÍ */
+    .inv-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+
+    .inv-table th {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      background: rgba(20, 20, 20, 0.03);
+    }
+
+    .inv-table th.text-right,
+    .inv-table td.text-right {
+      text-align: right;
+    }
+
+    .inv-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--grid-lines);
+      font-size: 13px;
+    }
+
+    .inv-table td.mono {
+      font-family: var(--font-mono);
+    }
+
+    .inv-table td.mono-bold {
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    /* KHỐI TỔNG CỘNG */
+    .total-box {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 30px;
+    }
+
+    .total-inner {
+      width: 320px;
+      border: 1px solid var(--border);
+      background: rgba(239, 236, 230, 0.5);
+      padding: 16px 20px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: var(--dim-text);
+    }
+
+    .grand-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-top: 10px;
+      margin-top: 10px;
+      border-top: 2px solid var(--border);
+      font-family: var(--font-mono);
+    }
+
+    .grand-total-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .grand-total-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ff5a5f;
+    }
+
+    /* FOOTER CHỮ KÝ */
+    .inv-signatures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+    }
+
+    .sig-col-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .sig-col-sub {
+      font-size: 11px;
+      color: var(--dim-text);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .sig-space {
+      height: 70px;
+    }
+
+    .sig-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       PRINT MEDIA STYLES (KHI BẤM IN HOẶC LƯU PDF)
+       ========================================================================== */
+    @media print {
+      body {
+        background: transparent !important;
+        padding: 0 !important;
+      }
+
+      .action-bar {
+        display: none !important;
+      }
+
+      .invoice-sheet {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .cb {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- THANH CÔNG CỤ (ẨN KHI IN) -->
+  <div class="action-bar">
+    <a href="/admin/dashboard" class="btn-back">← Quay Lại Dashboard</a>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" class="btn-send-invoice" id="btnSendInvoice"
+        onclick="sendInvoiceToTenant({{ inv.room.room_id }}, '{{ inv.invoice_code }}', {{ inv.total_amount }}, '{{ inv.billing_month }}')">
+        <span>✉️ GỬI HOÁ ĐƠN CHO KHÁCH</span>
+      </button>
+      <button type="button" class="btn-print" onclick="window.print()">
+        <span>🖨️ IN HOÁ ĐƠN / LƯU PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TỜ HÓA ĐƠN -->
+  <div class="invoice-sheet corner-brackets">
+    <span class="cb cb-tl"></span><span class="cb cb-tr"></span>
+    <span class="cb cb-bl"></span><span class="cb cb-br"></span>
+
+    <!-- HEADER HÓA ĐƠN -->
+    <div class="inv-header">
+      <div>
+        <span class="inv-brand-badge">HÓA ĐƠN THANH TOÁN TIỀN NHÀ</span>
+        <h1 class="inv-brand-title">RENTMASTER</h1>
+        <div class="inv-brand-sub">{{ inv.room.property_name or 'Hệ Thống Quản Lý Phòng Trọ Thông Minh' }}</div>
+      </div>
+      <div class="inv-meta-box">
+        <div class="inv-number">{{ inv.invoice_code }}</div>
+        <div class="inv-meta-row">Kỳ thu tiền: <strong>{{ inv.billing_month }}</strong></div>
+        <div class="inv-meta-row">Ngày lập: <strong>{{ inv.created_date }}</strong></div>
+        <div class="inv-meta-row">Hạn thanh toán: <strong>{{ inv.due_date }}</strong></div>
+      </div>
+    </div>
+
+    <!-- THÔNG TIN ĐƠN VỊ & KHÁCH THUÊ -->
+    <div class="party-grid">
+      <div>
+        <div class="party-col-title">[ ĐƠN VỊ QUẢN LÝ / CHỦ TRỌ ]</div>
+        <div class="party-name">{{ inv.room.property_name or 'Ban Quản Lý Khu Trọ' }}</div>
+        <div class="party-info-item">Địa chỉ: {{ inv.room.property_address or 'TP. Biên Hòa, Tỉnh Đồng Nai' }}</div>
+        <div class="party-info-item">Hệ thống: RentMaster Smart Housing System</div>
+      </div>
+      <div>
+        <div class="party-col-title">[ KHÁCH HÀNG / NGƯỜI THUÊ ]</div>
+        <div class="party-name">{{ inv.room.tenant_name or 'Khách Thuê Phòng' }}</div>
+        <div class="party-info-item">Số điện thoại: {{ inv.room.tenant_phone or '—' }}</div>
+        <div>
+          <span class="room-highlight-badge">PHÒNG SỐ: P.{{ inv.room.room_number }} ({{ inv.room.room_type }})</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BẢNG CÁC KHOẢN CHI PHÍ -->
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th style="width: 45px;">STT</th>
+          <th>KHOẢN MỤC CHI PHÍ</th>
+          <th class="text-right">SỐ LƯỢNG / CHỈ SỐ</th>
+          <th class="text-right">ĐƠN GIÁ</th>
+          <th class="text-right">THÀNH TIỀN (VNĐ)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">01</td>
+          <td><strong>Tiền thuê phòng</strong> (Phòng P.{{ inv.room.room_number }})</td>
+          <td class="text-right mono">01 tháng</td>
+          <td class="text-right mono">{{ "{:,.0f}".format(inv.rent_val) }} đ</td>
+          <td class="text-right mono-bold">{{ "{:,.0f}".format(inv.rent_val) }} đ</td>
+        </tr>
+        <tr>
+          <td class="mono">02</td>
+          <td><strong>Tiền điện sinh hoạt</strong> (Chỉ số tiêu thụ theo công tơ)</td>
+          <td class="text-right mono">{{ inv.elec_usage }} kWh</td>
+          <td class="text-right mono">{{ "{:,.0f}".format(inv.elec_rate) }} đ</td>
+          <td class="text-right mono-bold">{{ "{:,.0f}".format(inv.elec_cost) }} đ</td>
+        </tr>
+        <tr>
+          <td class="mono">03</td>
+          <td><strong>Tiền nước sinh hoạt</strong> (Khối lượng tiêu thụ)</td>
+          <td class="text-right mono">{{ inv.water_usage }} m³</td>
+          <td class="text-right mono">{{ "{:,.0f}".format(inv.water_rate) }} đ</td>
+          <td class="text-right mono-bold">{{ "{:,.0f}".format(inv.water_cost) }} đ</td>
+        </tr>
+        <tr>
+          <td class="mono">04</td>
+          <td><strong>Dịch vụ vệ sinh & rác sinh hoạt</strong></td>
+          <td class="text-right mono">01 phòng</td>
+          <td class="text-right mono">{{ "{:,.0f}".format(inv.trash_fee) }} đ</td>
+          <td class="text-right mono-bold">{{ "{:,.0f}".format(inv.trash_fee) }} đ</td>
+        </tr>
+        <tr>
+          <td class="mono">05</td>
+          <td><strong>Internet & Wi-Fi cáp quang</strong></td>
+          <td class="text-right mono">01 tháng</td>
+          <td class="text-right mono">{{ "{:,.0f}".format(inv.wifi_fee) }} đ</td>
+          <td class="text-right mono-bold">{{ "{:,.0f}".format(inv.wifi_fee) }} đ</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- KHỐI TỔNG THANH TOÁN -->
+    <div class="total-box">
+      <div class="total-inner">
+        <div class="total-row">
+          <span>Tiền phòng:</span>
+          <span>{{ "{:,.0f}".format(inv.rent_val) }} đ</span>
+        </div>
+        <div class="total-row">
+          <span>Điện & Nước:</span>
+          <span>{{ "{:,.0f}".format(inv.elec_cost + inv.water_cost) }} đ</span>
+        </div>
+        <div class="total-row">
+          <span>Dịch vụ & Mạng:</span>
+          <span>{{ "{:,.0f}".format(inv.trash_fee + inv.wifi_fee) }} đ</span>
+        </div>
+        <div class="grand-total-row">
+          <span class="grand-total-label">TỔNG CỘNG:</span>
+          <span class="grand-total-val">{{ "{:,.0f}".format(inv.total_amount) }} đ</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHỮ KÝ 2 BÊN -->
+    <div class="inv-signatures">
+      <div>
+        <div class="sig-col-title">NGƯỜI THUÊ PHÒNG</div>
+        <div class="sig-col-sub">(Ký và ghi rõ họ tên)</div>
+        <div class="sig-space"></div>
+        <div class="sig-name">{{ inv.room.tenant_name or '........................................' }}</div>
+      </div>
+      <div>
+        <div class="sig-col-title">ĐẠI DIỆN CHỦ TRỌ</div>
+        <div class="sig-col-sub">(Ký tên và đóng dấu)</div>
+        <div class="sig-space"></div>
+        <div class="sig-name">Ban Quản Lý RentMaster</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function sendInvoiceToTenant(roomId, invoiceCode, totalAmount, billingMonth) {
+      const btn = document.getElementById('btnSendInvoice');
+      if (!confirm(`Xác nhận gửi hoá đơn [${invoiceCode}] với số tiền ${Number(totalAmount).toLocaleString('vi-VN')} đ cho khách thuê phòng?`)) {
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ ĐANG GỬI...</span>';
+
+      try {
+        const res = await fetch(`/admin/send_invoice/${roomId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invoice_code: invoiceCode,
+            total_amount: totalAmount,
+            billing_month: billingMonth
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✓ " + data.message);
+          btn.innerHTML = '<span>✓ ĐÃ GỬI HOÁ ĐƠN</span>';
+          btn.style.background = '#2e7d32';
+          btn.style.borderColor = '#1b5e20';
+        } else {
+          alert("❌ " + data.message);
+          btn.disabled = false;
+          btn.innerHTML = '<span>✉️ GỬI HOÁ ĐƠN CHO KHÁCH</span>';
+        }
+      } catch (err) {
+        console.error("Lỗi gửi hoá đơn:", err);
+        alert("❌ Lỗi kết nối khi gửi hoá đơn!");
+        btn.disabled = false;
+        btn.innerHTML = '<span>✉️ GỬI HOÁ ĐƠN CHO KHÁCH</span>';
+      }
+    }
+  </script>
+</body>
+
+</html>

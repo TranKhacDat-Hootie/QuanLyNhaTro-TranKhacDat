@@ -1,0 +1,636 @@
+/* ==============================================================================
+   RENTMASTER TENANT STYLESHEET (tenant.css)
+   Aesthetic: Paper-White Technical Minimalist (#efece6, IBM Plex Mono & Schibsted Grotesk)
+   Zero heavy drop shadows — Crisp 1px Borders & Technical Precision
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  --bg: #efece6;
+  --bg-card: #f9f8f5;
+  --bg-card-hover: #ffffff;
+  --text: #141414;
+  --dim-text: rgba(20, 20, 20, 0.55);
+  --border: rgba(20, 20, 20, 0.15);
+  --border-strong: #141414;
+  --grid-lines: rgba(20, 20, 20, 0.08);
+
+  --font-sans: 'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --accent-green: #0f766e;
+  --accent-amber: #b45309;
+  --accent-red: #be123c;
+  --accent-blue: #0369a1;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  background-image: 
+    linear-gradient(var(--grid-lines) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-lines) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ------------------------------------------------------------------------------
+   TOP APPLICATION BAR
+   ------------------------------------------------------------------------------ */
+.app-header {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.header-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 4px 8px;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 2px;
+}
+
+.brand h1 {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brand-subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--dim-text);
+  display: block;
+}
+
+.user-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ------------------------------------------------------------------------------
+   MAIN LAYOUT CONTAINER
+   ------------------------------------------------------------------------------ */
+.main-content {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+}
+
+/* ------------------------------------------------------------------------------
+   TYPOGRAPHY & UTILITIES
+   ------------------------------------------------------------------------------ */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim-text);
+}
+
+.text-muted { color: var(--dim-text); }
+.text-danger { color: var(--accent-red); }
+.text-success { color: var(--accent-green); }
+.text-primary { color: var(--text); }
+.font-mono { font-family: var(--font-mono); }
+.font-bold { font-weight: 600; }
+.hidden { display: none !important; }
+.mt-4 { margin-top: 24px; }
+.text-center { text-align: center; }
+
+/* ------------------------------------------------------------------------------
+   AUTH VIEW (TENANT LOGIN & REGISTER TABS)
+   ------------------------------------------------------------------------------ */
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.auth-card {
+  position: relative;
+  background: #fdfcf9;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 460px;
+}
+
+.auth-card::before, .auth-card::after {
+  content: "+";
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--border-strong);
+  line-height: 1;
+}
+.auth-card::before { top: -7px; left: -6px; }
+.auth-card::after { bottom: -7px; right: -6px; }
+
+.auth-header {
+  text-align: left;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.auth-header h2 {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  gap: 8px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim-text);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -1px;
+}
+
+.auth-tab-btn:hover {
+  color: var(--text);
+}
+
+.auth-tab-btn.active {
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom-color: #fdfcf9;
+  background: #fdfcf9;
+}
+
+/* ------------------------------------------------------------------------------
+   TECH CARDS (NO DROP SHADOW)
+   ------------------------------------------------------------------------------ */
+.tech-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.tech-card::before, .tech-card::after {
+  content: "+";
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--dim-text);
+  line-height: 1;
+  pointer-events: none;
+}
+.tech-card::before { top: -6px; left: -5px; }
+.tech-card::after { bottom: -6px; right: -5px; }
+
+.tech-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tech-card-header h3 {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------------------
+   FORM INPUT CONTROLS
+   ------------------------------------------------------------------------------ */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim-text);
+  margin-bottom: 6px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  border-color: var(--border-strong);
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ------------------------------------------------------------------------------
+   BUTTONS
+   ------------------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+.btn-primary:hover {
+  background: #2b2b2b;
+  border-color: #2b2b2b;
+  color: #ffffff;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn-outline:hover {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+.btn-block { width: 100%; }
+.btn-sm { padding: 6px 12px; font-size: 0.72rem; }
+
+/* ------------------------------------------------------------------------------
+   WELCOME BANNER
+   ------------------------------------------------------------------------------ */
+.welcome-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* ------------------------------------------------------------------------------
+   CONTRACT DETAILS GRID
+   ------------------------------------------------------------------------------ */
+.contract-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.contract-item {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  padding: 14px 18px;
+  border-radius: 2px;
+}
+
+.contract-item .mono-label { margin-bottom: 4px; }
+.contract-item .contract-val {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------------------
+   TABLES
+   ------------------------------------------------------------------------------ */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.table th {
+  background: #e8e4dc;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tr:hover td {
+  background-color: rgba(20, 20, 20, 0.02);
+}
+
+/* ------------------------------------------------------------------------------
+   BADGES
+   ------------------------------------------------------------------------------ */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+}
+
+.badge-success {
+  background: #f0fdf4;
+  color: var(--accent-green);
+  border-color: rgba(15, 118, 110, 0.3);
+}
+
+.badge-warning {
+  background: #fffbeb;
+  color: var(--accent-amber);
+  border-color: rgba(180, 83, 9, 0.3);
+}
+
+.badge-danger {
+  background: #fff1f2;
+  color: var(--accent-red);
+  border-color: rgba(190, 18, 60, 0.3);
+}
+
+.badge-primary {
+  background: #f4f4f5;
+  color: var(--text);
+  border-color: rgba(20, 20, 20, 0.2);
+}
+
+/* ------------------------------------------------------------------------------
+   MODALS
+   ------------------------------------------------------------------------------ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-box {
+  position: relative;
+  background: #efece6;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+}
+
+.modal-box::before, .modal-box::after {
+  content: "+";
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--border-strong);
+  line-height: 1;
+}
+.modal-box::before { top: -7px; left: -6px; }
+.modal-box::after { bottom: -7px; right: -6px; }
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--dim-text);
+  cursor: pointer;
+}
+.btn-close:hover { color: var(--text); }
+
+.modal-body { padding: 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ------------------------------------------------------------------------------
+   TOAST NOTIFICATIONS
+   ------------------------------------------------------------------------------ */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: var(--text);
+  color: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  padding: 12px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ------------------------------------------------------------------------------
+   QR CODE & BANKING PAYMENT STYLES
+   ------------------------------------------------------------------------------ */
+.qr-payment-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 20px;
+  text-align: center;
+}
+
+.qr-image-wrapper {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  display: inline-block;
+  padding: 10px;
+  margin: 12px 0;
+  border-radius: 2px;
+}
+
+.qr-image-wrapper img {
+  max-width: 210px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.bank-info-box {
+  background: #fdfcf9;
+  border: 1px dashed var(--border);
+  padding: 14px;
+  margin-top: 14px;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.bank-info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.notice-item {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  padding: 14px 18px;
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+.notice-item.notice-reminder {
+  border-left-color: var(--accent-red);
+}
+.notice-item.notice-maintenance {
+  border-left-color: var(--accent-amber);
+}
+
+.table tr.row-overdue {
+  background-color: rgba(190, 18, 60, 0.06) !important;
+  border-left: 3px solid var(--accent-red) !important;
+}
+
+.table tr.row-overdue td {
+  color: var(--accent-red) !important;
+}
+
+@media (max-width: 900px) {
+  .header-container { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .form-row { grid-template-columns: 1fr; }
+}

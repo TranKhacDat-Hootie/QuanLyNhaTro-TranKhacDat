@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RENTMASTER — Tenant Portal | Cổng Cư Dân Phòng Trọ</title>
+    <link rel="stylesheet" href="/static/css/tenant.css">
+</head>
+<body>
+    <!-- TOP APPLICATION BAR -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <span class="brand-badge">RM-02</span>
+                <div>
+                    <h1>RentMaster Tenant Portal</h1>
+                    <span class="brand-subtitle">Cổng Dịch Vụ Cư Dân — Hóa Đơn, Hợp Đồng & Phản Ánh Kỹ Thuật</span>
+                </div>
+            </div>
+            <div id="header-user-panel" class="user-panel hidden">
+                <span class="mono-label">KHÁCH THUÊ:</span>
+                <span id="user-display-name" class="user-name">NGUYỄN VĂN AN</span>
+                <span class="badge badge-success">TENANT</span>
+                <button id="btn-logout" class="btn btn-outline btn-sm">[ ĐĂNG XUẤT ➔ ]</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- 1. FORM XÁC THỰC: 2 TAB ĐĂNG NHẬP / ĐĂNG KÝ -->
+        <section id="auth-section" class="auth-wrapper">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <span class="mono-label">[ RESIDENT ACCESS ]</span>
+                    <h2>Cổng Khách Thuê Phòng</h2>
+                    <p class="text-muted" style="font-size: 0.85rem; margin-top: 4px;">Đăng nhập để tra cứu hợp đồng, theo dõi hóa đơn và gửi phản ánh sự cố.</p>
+                </div>
+
+                <div class="auth-tabs">
+                    <button id="tab-btn-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Đăng Nhập</button>
+                    <button id="tab-btn-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Đăng Ký Tài Khoản</button>
+                </div>
+
+                <!-- FORM ĐĂNG NHẬP -->
+                <form id="form-login" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Tên đăng nhập</label>
+                        <input type="text" id="login-username" class="form-control" placeholder="Nhập tên tài khoản (VD: nguyenvana)" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Mật khẩu</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="Nhập mật khẩu (VD: 123456)" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">[ ĐĂNG NHẬP HỆ THỐNG → ]</button>
+                </form>
+
+                <!-- FORM ĐĂNG KÝ (BẢO MẬT: BẮT BUỘC ROLE 'TENANT') -->
+                <form id="form-register" class="hidden" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="reg-fullname">Họ và tên đầy đủ</label>
+                        <input type="text" id="reg-fullname" class="form-control" placeholder="Ví dụ: Nguyễn Văn An" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-username">Tên đăng nhập mới</label>
+                        <input type="text" id="reg-username" class="form-control" placeholder="Viết liền không dấu" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Mật khẩu</label>
+                        <input type="password" id="reg-password" class="form-control" placeholder="Tối thiểu 6 ký tự" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reg-phone">Số điện thoại</label>
+                            <input type="tel" id="reg-phone" class="form-control" placeholder="090..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Email (tùy chọn)</label>
+                            <input type="email" id="reg-email" class="form-control" placeholder="email@gmail.com">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">[ HOÀN TẤT ĐĂNG KÝ → ]</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 2. TENANT PORTAL (HIỂN THỊ SAU KHI ĐĂNG NHẬP) -->
+        <section id="portal-section" class="hidden">
+            <!-- BANNER CHÀO MỪNG -->
+            <div class="welcome-banner">
+                <div>
+                    <span class="mono-label">TENANT DASHBOARD</span>
+                    <h2 class="mono-title" style="margin-top: 4px;">👋 Xin chào, <span id="tenant-name">Khách thuê</span></h2>
+                    <p class="text-muted" style="font-size: 0.85rem;">Tra cứu thông tin phòng, thanh toán hóa đơn điện nước trực tiếp qua mã QR và gửi yêu cầu sửa chữa.</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="scrollToSection('section-payment')">[ 💳 THANH TOÁN QR ]</button>
+                    <button class="btn btn-outline btn-sm" onclick="scrollToSection('section-maintenance')">[ 🚨 BÁO SỰ CỐ ]</button>
+                    <button class="btn btn-outline btn-sm" onclick="scrollToSection('section-profile')">[ ⚙️ TÀI KHOẢN ]</button>
+                </div>
+            </div>
+
+            <!-- GRID 2 CỘT: THÔNG TIN HỢP ĐỒNG & BẢNG TIN THÔNG BÁO -->
+            <div class="grid-2">
+                <!-- CỘT 1: THÔNG TIN HỢP ĐỒNG -->
+                <div class="tech-card">
+                    <div class="tech-card-header">
+                        <div>
+                            <span class="mono-label">LEASE AGREEMENT</span>
+                            <h3>📋 Thông Tin Hợp Đồng & Phòng</h3>
+                        </div>
+                        <span id="badge-contract-status" class="badge badge-primary">ACTIVE</span>
+                    </div>
+                    <div id="tenant-contract-info">
+                        <p class="text-muted">Đang tải thông tin hợp đồng...</p>
+                    </div>
+                </div>
+
+                <!-- CỘT 2: BẢNG TIN THÔNG BÁO TỪ CHỦ TRỌ (NOTICE BOARD) -->
+                <div class="tech-card">
+                    <div class="tech-card-header">
+                        <div>
+                            <span class="mono-label">NOTICE BOARD</span>
+                            <h3>📢 Bảng Tin & Nhắc Nhở Từ Chủ Trọ</h3>
+                        </div>
+                        <span id="badge-notice-count" class="badge badge-warning">0 thông báo</span>
+                    </div>
+                    <div id="tenant-notices-container" style="max-height: 290px; overflow-y: auto;">
+                        <p class="text-muted p-2">Đang tải bảng tin thông báo...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE HÓA ĐƠN & THANH TOÁN TRỰC TIẾP QUA QR CODE (TRỌNG TÂM) -->
+            <div id="section-payment" class="tech-card mt-4">
+                <div class="tech-card-header">
+                    <div>
+                        <span class="mono-label">ACTIVE BILLING & DIRECT PAYMENT</span>
+                        <h3>⚡ Hóa Đơn Tháng Hiện Tại & Thanh Toán Trực Tiếp Qua Mã QR</h3>
+                    </div>
+                    <div id="active-invoice-status-badge">
+                        <!-- Badge trạng thái: Chưa thanh toán / Đã thanh toán -->
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- CỘT TRÁI: CHI TIẾT BÓC TÁCH HÓA ĐƠN THÁNG -->
+                    <div>
+                        <div id="active-invoice-breakdown">
+                            <p class="text-muted p-3">Đang tải chi tiết hóa đơn tháng hiện tại...</p>
+                        </div>
+                    </div>
+
+                    <!-- CỘT PHẢI: KHUNG QUÉT MÃ QR NGÂN HÀNG THANH TOÁN TRỰC TIẾP -->
+                    <div class="qr-payment-card">
+                        <span class="mono-label">[ VIETQR SCAN & PAY ]</span>
+                        <h4 style="font-family: var(--font-mono); font-size: 0.95rem; margin-top: 4px; text-transform: uppercase;">
+                            Quét Mã QR Chuyển Khoản Nhanh 24/7
+                        </h4>
+
+                        <div class="qr-image-wrapper">
+                            <img id="payment-qr-image" src="" alt="Mã QR Thanh Toán Tiền Trọ">
+                        </div>
+
+                        <div class="bank-info-box">
+                            <div class="bank-info-row">
+                                <span class="text-muted">Ngân hàng thụ hưởng:</span>
+                                <strong>MB BANK (Quân Đội)</strong>
+                            </div>
+                            <div class="bank-info-row">
+                                <span class="text-muted">Số tài khoản:</span>
+                                <span><strong id="bank-acc-number" class="font-mono">0901234567</strong> <button class="btn btn-outline btn-sm" style="padding: 2px 6px; font-size: 0.65rem;" onclick="copyAccountNumber()">Copy</button></span>
+                            </div>
+                            <div class="bank-info-row">
+                                <span class="text-muted">Chủ tài khoản:</span>
+                                <strong id="bank-acc-name">NGUYEN VAN CHU</strong>
+                            </div>
+                            <div class="bank-info-row">
+                                <span class="text-muted">Số tiền thanh toán:</span>
+                                <strong id="bank-amount" class="text-danger font-mono" style="font-size: 1rem;">0 đ</strong>
+                            </div>
+                            <div class="bank-info-row">
+                                <span class="text-muted">Nội dung chuyển khoản:</span>
+                                <code id="bank-memo" class="font-mono" style="font-weight: 600;">RENTMASTER PHONG P101</code>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 12px; font-size: 0.78rem;" class="text-muted">
+                            💡 Sau khi chuyển khoản thành công, hệ thống sẽ tự động cập nhật trạng thái hóa đơn sang Đã thanh toán trong vòng 5-10 phút.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE LỊCH SỬ GIAO DỊCH (HÓA ĐƠN CÁC THÁNG TRƯỚC ĐỂ ĐỐI CHIẾU) -->
+            <div class="tech-card mt-4">
+                <div class="tech-card-header">
+                    <div>
+                        <span class="mono-label">TRANSACTION HISTORY</span>
+                        <h3>📊 Lịch Sử Các Kỳ Hóa Đơn Đã Xuất</h3>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Kỳ Hóa Đơn</th>
+                                <th>Tiền Phòng</th>
+                                <th>Điện (Cũ - Mới - Dùng - Tiền)</th>
+                                <th>Nước (Cũ - Mới - Dùng - Tiền)</th>
+                                <th>Rác & Wifi</th>
+                                <th>Tổng Tiền</th>
+                                <th>Hạn Đóng</th>
+                                <th>Trạng Thái</th>
+                                <th>Ngày Thanh Toán</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenant-invoices-list">
+                            <!-- Render động từ API -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MODULE BẢO TRÌ SỰ CỐ & PHẢN ÁNH KỸ THUẬT -->
+            <div id="section-maintenance" class="tech-card mt-4">
+                <div class="tech-card-header">
+                    <div>
+                        <span class="mono-label">INCIDENT & REPAIR TICKETS</span>
+                        <h3>🛠️ Yêu Cầu Bảo Trì & Theo Dõi Tiến Độ Sửa Chữa</h3>
+                    </div>
+                    <span id="badge-tenant-maint" class="badge badge-warning">0 sự cố</span>
+                </div>
+
+                <div class="grid-2">
+                    <!-- FORM GỬI YÊU CẦU BẢO TRÌ -->
+                    <div style="background: #ffffff; border: 1px solid var(--border); padding: 20px; border-radius: 2px;">
+                        <span class="mono-label">[ TICKET DISPATCH ]</span>
+                        <h4 style="font-family: var(--font-mono); font-size: 0.95rem; margin-top: 4px; margin-bottom: 16px; text-transform: uppercase;">
+                            Gửi Yêu Cầu Sửa Chữa Mới
+                        </h4>
+
+                        <form onsubmit="handleCreateMaintenance(event)">
+                            <div class="form-group">
+                                <label for="maint-category">Phân loại sự cố:</label>
+                                <select id="maint-category" class="form-control" required>
+                                    <option value="Điện">⚡ Hệ thống điện (Bóng đèn, ổ cắm, aptomat)</option>
+                                    <option value="Nước">💧 Hệ thống nước (Vòi rỉ, lavabo, bồn cầu, thoát sàn)</option>
+                                    <option value="Nội thất">🪑 Nội thất & Đồ dùng (Giường, tủ, quạt trần, máy lạnh)</option>
+                                    <option value="Mạng / Wifi">🌐 Mạng Internet / Tín hiệu Wifi</option>
+                                    <option value="Cửa & Khóa">🚪 Khóa cửa, chốt an toàn</option>
+                                    <option value="Khác">🔍 Vấn đề khác</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="maint-title">Tiêu đề vắn tắt:</label>
+                                    <input type="text" id="maint-title" class="form-control" placeholder="VD: Vòi lavabo bị rỉ nước" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="maint-priority">Mức độ khẩn cấp:</label>
+                                    <select id="maint-priority" class="form-control">
+                                        <option value="Normal">Bình thường (xử lý trong 1-2 ngày)</option>
+                                        <option value="High">Khẩn cấp (cần thợ qua gấp trong ngày)</option>
+                                        <option value="Low">Nhẹ (không ảnh hưởng sinh hoạt)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maint-desc">Mô tả chi tiết tình trạng hỏng hóc:</label>
+                                <textarea id="maint-desc" class="form-control" rows="3" placeholder="Mô tả cụ thể vị trí và biểu hiện sự cố để chủ trọ chuẩn bị vật tư thay thế..." required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">[ GỬI YÊU CẦU BẢO TRÌ ➔ ]</button>
+                        </form>
+                    </div>
+
+                    <!-- BẢNG THEO DÕI TIẾN ĐỘ SỬA CHỮA -->
+                    <div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã #</th>
+                                        <th>Sự Cố</th>
+                                        <th>Mức Độ</th>
+                                        <th>Thời Gian</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Phản Hồi Chủ Trọ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tenant-maintenance-list">
+                                    <!-- Render động từ API -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE PROFILE: CẬP NHẬT SĐT & ĐỔI MẬT KHẨU -->
+            <div id="section-profile" class="tech-card mt-4">
+                <div class="tech-card-header">
+                    <div>
+                        <span class="mono-label">SECURITY & PROFILE SETTINGS</span>
+                        <h3>👤 Thông Tin Cá Nhân & Đổi Mật Khẩu</h3>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- FORM 1: CẬP NHẬT SĐT & EMAIL -->
+                    <div style="background: #ffffff; border: 1px solid var(--border); padding: 20px; border-radius: 2px;">
+                        <span class="mono-label">[ LIÊN HỆ ]</span>
+                        <h4 style="font-family: var(--font-mono); font-size: 0.95rem; margin-top: 4px; margin-bottom: 16px; text-transform: uppercase;">
+                            Cập Nhật Số Điện Thoại & Email
+                        </h4>
+                        <form onsubmit="handleUpdateContact(event)">
+                            <div class="form-group">
+                                <label for="profile-phone">Số điện thoại liên lạc:</label>
+                                <input type="tel" id="profile-phone" class="form-control" placeholder="090..." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-email">Email nhận thông báo:</label>
+                                <input type="email" id="profile-email" class="form-control" placeholder="email@gmail.com">
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-block">[ LƯU THÔNG TIN LIÊN HỆ ]</button>
+                        </form>
+                    </div>
+
+                    <!-- FORM 2: ĐỔI MẬT KHẨU -->
+                    <div style="background: #ffffff; border: 1px solid var(--border); padding: 20px; border-radius: 2px;">
+                        <span class="mono-label">[ BẢO MẬT ]</span>
+                        <h4 style="font-family: var(--font-mono); font-size: 0.95rem; margin-top: 4px; margin-bottom: 16px; text-transform: uppercase;">
+                            Đổi Mật Khẩu Đăng Nhập
+                        </h4>
+                        <form onsubmit="handleChangePassword(event)">
+                            <div class="form-group">
+                                <label for="pwd-old">Mật khẩu hiện tại:</label>
+                                <input type="password" id="pwd-old" class="form-control" placeholder="Nhập mật khẩu cũ" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pwd-new">Mật khẩu mới:</label>
+                                    <input type="password" id="pwd-new" class="form-control" placeholder="Tối thiểu 6 ký tự" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pwd-confirm">Xác nhận mật khẩu:</label>
+                                    <input type="password" id="pwd-confirm" class="form-control" placeholder="Nhập lại mật khẩu mới" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">[ XÁC NHẬN ĐỔI MẬT KHẨU ]</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- TOAST THÔNG BÁO -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/js/tenant.js"></script>
+</body>
+</html>
